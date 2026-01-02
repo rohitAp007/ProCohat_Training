@@ -4,6 +4,7 @@ import '../bloc/login_bloc.dart';
 import '../bloc/login_event.dart';
 import '../bloc/login_state.dart';
 import '../../signup/ui/signup_screen.dart';
+import '../../password_reset/ui/password_reset_screen.dart';
 
 /// Login form widget with real-time validation
 class LoginForm extends StatefulWidget {
@@ -136,23 +137,12 @@ class _LoginFormState extends State<LoginForm> {
                 alignment: Alignment.centerRight,
                 child: TextButton(
                   onPressed: () {
-                    // TODO: Implement password reset
-                    if (_emailController.text.isNotEmpty) {
-                      context.read<LoginBloc>().add(
-                            LoginPasswordResetRequested(_emailController.text),
-                          );
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Password reset email sent!'),
-                        ),
-                      );
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Please enter your email first'),
-                        ),
-                      );
-                    }
+                    // Navigate to password reset screen
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const PasswordResetScreen(),
+                      ),
+                    );
                   },
                   child: const Text('Forgot Password?'),
                 ),
