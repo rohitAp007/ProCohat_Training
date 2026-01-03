@@ -5,6 +5,7 @@ import 'package:supabase_flutter_app/features/auth/password_reset/bloc/password_
 import 'package:supabase_flutter_app/features/auth/password_reset/bloc/password_reset_state.dart';
 import 'package:supabase_flutter_app/features/auth/password_reset/widgets/password_reset_form.dart';
 import 'package:supabase_flutter_app/features/auth/password_reset/ui/password_reset_success_screen.dart';
+import 'package:supabase_flutter_app/core/widgets/custom_snackbar.dart';
 
 /// Password reset screen
 class PasswordResetScreen extends StatelessWidget {
@@ -34,12 +35,10 @@ class PasswordResetScreen extends StatelessWidget {
               );
             }
             if (state is PasswordResetFailure) {
-              // Show error message
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(state.errorMessage ?? 'Failed to send reset email'),
-                  backgroundColor: Colors.red,
-                ),
+              // Show error with custom snackbar
+              CustomSnackBar.showError(
+                context,
+                state.errorMessage ?? 'Failed to send reset email',
               );
             }
           },
