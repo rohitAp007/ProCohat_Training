@@ -5,6 +5,7 @@ import '../bloc/login_bloc.dart';
 import '../bloc/login_state.dart';
 import '../widgets/login_form.dart';
 import '../../home/home_screen.dart';
+import 'package:supabase_flutter_app/core/widgets/custom_snackbar.dart';
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
@@ -16,14 +17,11 @@ class LoginScreen extends StatelessWidget {
         authRepository: AuthRepository(),
       ),
       child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Login'),
-          centerTitle: true,
-        ),
         body: BlocListener<LoginBloc, LoginState>(
           listener: (context, state) {
             if (state is LoginSuccess) {
-              // Navigate to home screen on success
+              // Show success message and navigate
+              CustomSnackBar.showSuccess(context, 'Login successful!');
               Navigator.of(context).pushReplacement(
                 MaterialPageRoute(
                   builder: (_) => const HomeScreen(),
@@ -31,21 +29,20 @@ class LoginScreen extends StatelessWidget {
               );
             }
             if (state is LoginFailure) {
-              // Show error message
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(state.errorMessage ?? 'Login failed'),
-                  backgroundColor: Colors.red,
-                ),
+              // Show error with custom snackbar
+              CustomSnackBar.showError(
+                context,
+                state.errorMessage ?? 'Login failed',
               );
             }
           },
-          child: const SingleChildScrollView(
-            child: LoginForm(),
+          child: const SafeArea(
+            child: SingleChildScrollView(
+              child: LoginForm(),
+            ),
           ),
         ),
       ),
     );
   }
-}
 
