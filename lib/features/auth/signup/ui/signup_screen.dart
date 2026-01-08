@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../data/auth_repository.dart';
-import '../bloc/signup_bloc.dart';
-import '../bloc/signup_state.dart';
-import '../widgets/signup_form.dart';
-import '../../home/home_screen.dart';
+import 'package:supabase_flutter_app/features/auth/data/auth_repository.dart';
+import 'package:supabase_flutter_app/features/auth/signup/bloc/signup_bloc.dart';
+import 'package:supabase_flutter_app/features/auth/signup/bloc/signup_state.dart';
+import 'package:supabase_flutter_app/features/auth/signup/widgets/signup_form.dart';
+import 'package:supabase_flutter_app/features/auth/home/home_screen.dart';
+import 'package:supabase_flutter_app/core/widgets/custom_snackbar.dart';
 
 class SignupScreen extends StatelessWidget {
   const SignupScreen({super.key});
@@ -23,7 +24,11 @@ class SignupScreen extends StatelessWidget {
         body: BlocListener<SignupBloc, SignupState>(
           listener: (context, state) {
             if (state is SignupSuccess) {
-              // Navigate to home screen on success
+              // Show success and navigate
+              CustomSnackBar.showSuccess(
+                context,
+                'Account created successfully!',
+              );
               Navigator.of(context).pushReplacement(
                 MaterialPageRoute(
                   builder: (_) => const HomeScreen(),
@@ -32,11 +37,9 @@ class SignupScreen extends StatelessWidget {
             }
             if (state is SignupFailure) {
               // Show error message
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(state.errorMessage ?? 'Signup failed'),
-                  backgroundColor: Colors.red,
-                ),
+              CustomSnackBar.showError(
+                context,
+                state.errorMessage ?? 'Signup failed',
               );
             }
           },
