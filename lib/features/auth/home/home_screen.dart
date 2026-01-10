@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../data/auth_repository.dart';
 import '../login/ui/login_screen.dart';
+import 'package:supabase_flutter_app/features/profile/ui/profile_view_screen.dart';
+import 'package:supabase_flutter_app/features/profile/bloc/profile_bloc.dart';
+import 'package:supabase_flutter_app/features/profile/bloc/profile_event.dart';
+import 'package:supabase_flutter_app/features/profile/data/profile_repository.dart';
 
 /// Home screen displayed after successful authentication
 class HomeScreen extends StatelessWidget {
@@ -90,6 +95,33 @@ class HomeScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 40),
+              
+              // PROFILE BUTTON
+              ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => BlocProvider(
+                        create: (_) => ProfileBloc(
+                          repository: ProfileRepository(),
+                        )..add(ProfileLoadRequested(userId: user?.id ?? '')),
+                        child: const ProfileViewScreen(),
+                      ),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.person),
+                label: const Text('View Profile'),
+                style: ElevatedButton.styleFrom(
+                  minimumSize: const Size(double.infinity, 48),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+              
+              const SizedBox(height: 24),
               Card(
                 elevation: 4,
                 shape: RoundedRectangleBorder(

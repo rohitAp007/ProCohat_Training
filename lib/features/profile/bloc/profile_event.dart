@@ -9,7 +9,7 @@
 /// ============================================================================
 
 import 'package:equatable/equatable.dart';
-import 'profile_model.dart';
+import '../data/profile_model.dart';
 
 /// Base class for all profile events
 /// 
