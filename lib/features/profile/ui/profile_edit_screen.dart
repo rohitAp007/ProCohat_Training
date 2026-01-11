@@ -20,7 +20,6 @@ import '../bloc/profile_event.dart';
 import '../bloc/profile_state.dart';
 import '../data/profile_model.dart';
 import '../widgets/profile_avatar.dart';
-import 'package:supabase_flutter_app/core/widgets/loading_overlay.dart';
 import 'package:supabase_flutter_app/core/widgets/custom_snackbar.dart';
 
 /// ProfileEditScreen - Edit user profile
@@ -134,8 +133,8 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
         // SUCCESS - navigate back
         if (state is ProfileOperationSuccess) {
           CustomSnackBar.showSuccess(
-            context: context,
-            message: state.message,
+            context,
+            state.message,
           );
           Navigator.pop(context);
         }
@@ -143,8 +142,8 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
         // ERROR - show message
         if (state is ProfileError) {
           CustomSnackBar.showError(
-            context: context,
-            message: state.message,
+            context,
+            state.message,
           );
         }
       },
@@ -152,12 +151,22 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
         builder: (context, state) {
           final isLoading = state is ProfileLoading;
           
-          return LoadingOverlay(
-            isLoading: isLoading,
-            child: Scaffold(
+          return Stack(
+            children: [
+              Scaffold(
               appBar: _buildAppBar(context),
               body: _buildForm(context),
             ),
+            if (isLoading)
+              Container(
+                color: Colors.black54,
+                child: const Center(
+                  child: CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  ),
+                ),
+              ),
+            ],
           );
         },
       ),

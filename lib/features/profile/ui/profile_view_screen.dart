@@ -22,7 +22,6 @@ import '../data/profile_model.dart';
 import '../widgets/profile_avatar.dart';
 import '../widgets/profile_info_card.dart';
 import 'profile_edit_screen.dart';
-import 'package:supabase_flutter_app/core/widgets/loading_overlay.dart';
 import 'package:supabase_flutter_app/core/widgets/custom_snackbar.dart';
 
 /// ProfileViewScreen - Display user's profile
@@ -56,16 +55,16 @@ class ProfileViewScreen extends StatelessWidget {
           // HANDLE OPERATION SUCCESS
           if (state is ProfileOperationSuccess) {
             CustomSnackBar.showSuccess(
-              context: context,
-              message: state.message,
+              context,
+              state.message,
             );
           }
           
           // HANDLE ERRORS
           if (state is ProfileError) {
             CustomSnackBar.showError(
-              context: context,
-              message: state.message,
+              context,
+              state.message,
             );
           }
         },
@@ -75,9 +74,8 @@ class ProfileViewScreen extends StatelessWidget {
           builder: (context, state) {
             // LOADING STATE
             if (state is ProfileLoading) {
-              return const LoadingOverlay(
-                isLoading: true,
-                child: SizedBox.expand(),
+              return const Center(
+                child: CircularProgressIndicator(),
               );
             }
             
