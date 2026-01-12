@@ -178,6 +178,9 @@ class ProfileRepository {
   /// - [ProfileException] on other errors
   Future<Profile?> getProfile(String userId) async {
     try {
+      // DEBUG: Print what we're searching for
+      print('🔍 ProfileRepository: Loading profile for user_id: $userId');
+      
       // QUERY DATABASE
       // SELECT * FROM profiles WHERE user_id = userId LIMIT 1
       final response = await _supabaseClient
@@ -186,16 +189,26 @@ class ProfileRepository {
           .eq('user_id', userId)  // WHERE user_id = userId
           .maybeSingle();          // Return null if not found
       
+      // DEBUG: Print response
+      print('📦 ProfileRepository: Response: $response');
+      
       // CHECK RESPONSE
       if (response == null) {
         // No profile found
+        print('❌ ProfileRepository: No profile found for user_id: $userId');
         return null;
       }
       
       // CONVERT TO PROFILE
+      print('✅ ProfileRepository: Profile found, converting to object');
       return Profile.fromJson(response);
       
-    } catch (e) {
+    } catch (e, stackTrace) {
+      // DEBUG: Print full error
+      print('🔴 ProfileRepository ERROR:');
+      print('Error: $e');
+      print('Stack trace: $stackTrace');
+      
       // HANDLE ERRORS
       if (e.toString().toLowerCase().contains('socket') ||
           e.toString().toLowerCase().contains('network')) {

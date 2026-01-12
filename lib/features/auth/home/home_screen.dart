@@ -99,6 +99,11 @@ class HomeScreen extends StatelessWidget {
               // PROFILE BUTTON
               ElevatedButton.icon(
                 onPressed: () {
+                  // DEBUG: Print user info
+                  print('🏠 HomeScreen: User ID: ${user?.id}');
+                  print('🏠 HomeScreen: User Email: ${user?.email}');
+                  print('🏠 HomeScreen: Navigating to ProfileViewScreen...');
+                  
                   Navigator.push(
                     context,
                     MaterialPageRoute(

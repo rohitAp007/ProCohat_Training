@@ -111,35 +111,40 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     ProfileLoadRequested event,
     Emitter<ProfileState> emit,
   ) async {
+    // DEBUG: Print event received
+    print('🎯 ProfileBloc: Received ProfileLoadRequested for userId: ${event.userId}');
+    
     // STEP 1: Show loading state
-    // UI displays spinner/skeleton
+    print('⏳ ProfileBloc: Emitting ProfileLoading state');
     emit(const ProfileLoading());
     
     try {
       // STEP 2: Call repository to fetch profile
-      // This is async - waits for database response
+      print('📡 ProfileBloc: Calling repository.getProfile(${event.userId})');
       final profile = await _repository.getProfile(event.userId);
       
       // STEP 3: Check if profile was found
       if (profile != null) {
         // Profile exists - show it
+        print('✅ ProfileBloc: Profile found! Emitting ProfileLoaded state');
         emit(ProfileLoaded(profile: profile, isEditMode: false));
       } else {
         // No profile found - show empty state
-        // User can create profile from here
+        print('📭 ProfileBloc: No profile found. Emitting ProfileEmpty state');
         emit(ProfileEmpty(userId: event.userId));
       }
       
     } on NetworkException catch (e) {
       // HANDLE NETWORK ERRORS
-      // No internet connection
+      print('🔴 ProfileBloc: NetworkException caught - ${e.message}');
       emit(ProfileError(
         message: e.message,
-        isRecoverable: true, // User can retry when online
+        isRecoverable: true,
       ));
       
     } on ProfileException catch (e) {
       // HANDLE PROFILE-SPECIFIC ERRORS
+      print('🔴 ProfileBloc: ProfileException caught - ${e.message}');
       emit(ProfileError(
         message: e.message,
         isRecoverable: e.isRecoverable,
@@ -148,7 +153,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       
     } catch (e) {
       // HANDLE UNEXPECTED ERRORS
-      // Shouldn't happen, but be safe
+      print('🔴 ProfileBloc: Unexpected error caught - $e');
       emit(ProfileError(
         message: 'Failed to load profile',
         isRecoverable: true,
