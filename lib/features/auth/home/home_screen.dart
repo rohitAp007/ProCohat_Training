@@ -99,14 +99,21 @@ class HomeScreen extends StatelessWidget {
               // PROFILE BUTTON
               ElevatedButton.icon(
                 onPressed: () {
+                  // DEBUG: Print user info
+                  print('🏠 HomeScreen: User ID: ${user?.id}');
+                  print('🏠 HomeScreen: User Email: ${user?.email}');
+                  print('🏠 HomeScreen: Navigating to ProfileViewScreen...');
+                  
                   Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (_) => BlocProvider(
                         create: (_) => ProfileBloc(
                           repository: ProfileRepository(),
-                        )..add(ProfileLoadRequested(userId: user?.id ?? '')),
-                        child: const ProfileViewScreen(),
+                        ),
+                        child: ProfileViewScreen(
+                          userId: user?.id,  // Pass userId to screen
+                        ),
                       ),
                     ),
                   );
