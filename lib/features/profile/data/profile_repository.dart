@@ -100,31 +100,41 @@ class ProfileRepository {
   /// - [NetworkException] if no internet
   Future<Profile> createProfile(Profile profile) async {
     try {
-      // STEP 1: Convert Profile to JSON
-      // Profile object → Map<String, dynamic>
-      final profileData = profile.toJson();
+      print('🔧 ProfileRepository: createProfile called');
       
-      // STEP 2: INSERT into database
-      // .insert() = SQL INSERT INTO profiles VALUES (...)
-      // .select() = SQL SELECT * (return inserted row)
-      // .single() = expect exactly one row back
+      // STEP 1: Convert Profile to JSON
+      final profileData = profile.toJson();
+      print('📝 ProfileRepository: Profile JSON (before cleanup): $profileData');
+      
+      // STEP 2: Remove id field (database will auto-generate)
+      // PostgreSQL expects UUID type, empty string causes error
+      profileData.remove('id');
+      print('📝 ProfileRepository: Profile JSON (after cleanup): $profileData');
+      
+      // STEP 3: INSERT into database
+      print('📡 ProfileRepository: Inserting into database...');
       final response = await _supabaseClient
           .from(_tableName)
           .insert(profileData)
           .select()
           .single();
       
+      print('✅ ProfileRepository: Insert successful!');
+      print('📦 ProfileRepository: Response: $response');
+      
       // STEP 3: Convert response to Profile
-      // Map<String, dynamic> → Profile object
       return Profile.fromJson(response);
       
     } on PostgrestException catch (e) {
       // HANDLE DATABASE ERRORS
-      // PostgrestException = Supabase-specific error
+      print('🔴 ProfileRepository: PostgrestException caught!');
+      print('Code: ${e.code}');
+      print('Message: ${e.message}');
+      print('Details: ${e.details}');
+      print('Hint: ${e.hint}');
       
       if (e.code == '23505') {
         // 23505 = unique constraint violation
-        // Profile with this user_id already exists
         throw ProfileAlreadyExistsException();
       }
       
@@ -133,7 +143,9 @@ class ProfileRepository {
       
     } catch (e) {
       // HANDLE OTHER ERRORS
-      // Network issues, unexpected errors, etc.
+      print('🔴 ProfileRepository: Unexpected error!');
+      print('Error type: ${e.runtimeType}');
+      print('Error: $e');
       
       if (e.toString().toLowerCase().contains('socket') ||
           e.toString().toLowerCase().contains('network')) {

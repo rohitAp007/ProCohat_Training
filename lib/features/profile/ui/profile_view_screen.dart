@@ -36,7 +36,7 @@ import 'package:supabase_flutter_app/core/widgets/custom_snackbar.dart';
 /// - BlocBuilder: Rebuild on state changes
 /// - BlocListener: React to operation results
 /// - Dispatch events: Load profile, logout
-class ProfileViewScreen extends StatelessWidget {
+class ProfileViewScreen extends StatefulWidget {
   /// User ID whose profile to display
   /// Could be current user or another user
   final String? userId;
@@ -45,6 +45,28 @@ class ProfileViewScreen extends StatelessWidget {
     super.key,
     this.userId,
   });
+  
+  @override
+  State<ProfileViewScreen> createState() => _ProfileViewScreenState();
+}
+
+class _ProfileViewScreenState extends State<ProfileViewScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Dispatch load event after frame is rendered
+    // This ensures BLoC is ready to receive events
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (widget.userId != null && widget.userId!.isNotEmpty) {
+        print('📤 ProfileViewScreen: Dispatching ProfileLoadRequested');
+        context.read<ProfileBloc>().add(
+          ProfileLoadRequested(userId: widget.userId!),
+        );
+      } else {
+        print('⚠️ ProfileViewScreen: No userId provided');
+      }
+    });
+  }
   
   @override
   Widget build(BuildContext context) {
@@ -139,7 +161,7 @@ class ProfileViewScreen extends StatelessWidget {
                   // Retry loading profile
                   context.read<ProfileBloc>().add(
                         ProfileLoadRequested(
-                          userId: userId ?? '',
+                          userId: widget.userId ?? '',
                         ),
                       );
                 },
@@ -351,7 +373,7 @@ class ProfileViewScreen extends StatelessWidget {
           value: context.read<ProfileBloc>(),
           child: ProfileEditScreen(
             profile: profile,
-            userId: profile?.userId ?? '',
+            userId: profile?.userId ?? widget.userId ?? '',  // Use widget.userId for create
           ),
         ),
       ),

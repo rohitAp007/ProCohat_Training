@@ -110,8 +110,10 @@ class HomeScreen extends StatelessWidget {
                       builder: (_) => BlocProvider(
                         create: (_) => ProfileBloc(
                           repository: ProfileRepository(),
-                        )..add(ProfileLoadRequested(userId: user?.id ?? '')),
-                        child: const ProfileViewScreen(),
+                        ),
+                        child: ProfileViewScreen(
+                          userId: user?.id,  // Pass userId to screen
+                        ),
                       ),
                     ),
                   );

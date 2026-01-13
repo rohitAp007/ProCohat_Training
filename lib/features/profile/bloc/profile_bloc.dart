@@ -74,6 +74,11 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   ProfileBloc({required ProfileRepository repository})
       : _repository = repository,
         super(const ProfileInitial()) {
+    // DEBUG: Log BLoC initialization
+    print('🏗️ ProfileBloc: Constructor called');
+    print('🏗️ ProfileBloc: Initial state: ProfileInitial');
+    print('🏗️ ProfileBloc: Registering event handlers...');
+    
     // Register event handlers
     // When ProfileLoadRequested event comes → call _onLoadRequested
     on<ProfileLoadRequested>(_onLoadRequested);
@@ -81,6 +86,8 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     on<ProfileUpdateRequested>(_onUpdateRequested);
     on<ProfileDeleteRequested>(_onDeleteRequested);
     on<ProfileEditToggled>(_onEditToggled);
+    
+    print('✅ ProfileBloc: All event handlers registered');
   }
   
   // ===========================================================================
@@ -191,46 +198,55 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     ProfileCreateRequested event,
     Emitter<ProfileState> emit,
   ) async {
+    // DEBUG: Log create request
+    print('🎯 ProfileBloc: Received ProfileCreateRequested');
+    print('📝 ProfileBloc: Profile data: ${event.profile.toJson()}');
+    
     // STEP 1: Show loading
+    print('⏳ ProfileBloc: Emitting ProfileLoading state');
     emit(const ProfileLoading());
     
     try {
       // STEP 2: Create profile in database
-      // Repository handles JSON conversion and database insert
+      print('📡 ProfileBloc: Calling repository.createProfile()');
       final createdProfile = await _repository.createProfile(event.profile);
       
       // STEP 3: Emit success message
-      // UI can show SnackBar via BlocListener
+      print('✅ ProfileBloc: Profile created! Emitting success');
       emit(const ProfileOperationSuccess(
         message: 'Profile created successfully!',
       ));
       
       // STEP 4: Emit loaded state with new profile
-      // UI switches to profile view
+      print('📦 ProfileBloc: Emitting ProfileLoaded state');
       emit(ProfileLoaded(profile: createdProfile, isEditMode: false));
       
     } on ProfileAlreadyExistsException catch (e) {
-      // Profile already exists for this user
-      // Shouldn't happen if UI checks first
+      print('🔴 ProfileBloc: ProfileAlreadyExistsException - ${e.message}');
       emit(ProfileError(
         message: e.message,
-        isRecoverable: false, // Can't create duplicate
+        isRecoverable: false,
       ));
       
     } on NetworkException catch (e) {
+      print('🔴 ProfileBloc: NetworkException - ${e.message}');
       emit(ProfileError(
         message: e.message,
-        isRecoverable: true, // Retry when online
+        isRecoverable: true,
       ));
       
     } on ProfileCreateFailedException catch (e) {
+      print('🔴 ProfileBloc: ProfileCreateFailedException - ${e.message}');
       emit(ProfileError(
         message: e.message,
         isRecoverable: e.isRecoverable,
         technicalDetails: e.technicalDetails,
       ));
       
-    } catch (e) {
+    } catch (e, stackTrace) {
+      print('🔴 ProfileBloc: Unexpected error during CREATE');
+      print('Error: $e');
+      print('Stack trace: $stackTrace');
       emit(ProfileError(
         message: 'Failed to create profile',
         isRecoverable: true,
