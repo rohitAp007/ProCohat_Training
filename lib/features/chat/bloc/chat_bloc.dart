@@ -10,6 +10,7 @@
 
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:supabase_flutter_app/core/error/exceptions.dart';
 import 'package:supabase_flutter_app/features/chat/data/message_model.dart';
 import 'package:supabase_flutter_app/features/chat/data/message_repository.dart';
@@ -88,6 +89,9 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
         otherUserId: event.otherUserId,
         hasMore: messages.length >= 50,
       ));
+      
+      // ✨ Auto-subscribe to realtime (Day 20)
+      add(ChatRealtimeSubscriptionRequested(chatId: event.chatId));
       
     } on NetworkException {
       emit(const ChatError(
@@ -395,13 +399,53 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   // REALTIME HANDLERS (Day 20 full implementation)
   // =========================================================================
   
-  /// Subscribe to realtime messages (placeholder)
+  /// Subscribe to realtime messages
+  /// 
+  /// **Flow:**
+  /// 1. Cancel existing subscription
+  /// 2. Create new WebSocket subscription
+  /// 3. Listen for new messages
+  /// 4. Convert to ChatMessageReceived events
   Future<void> _onRealtimeSubscribe(
     ChatRealtimeSubscriptionRequested event,
     Emitter<ChatState> emit,
   ) async {
-    // TODO: Implement on Day 20
-    // Will set up Supabase Realtime subscription
+    // Cancel existing subscription if any
+    await _realtimeSubscription?.cancel();
+    
+    try {
+      // Get Supabase client
+      final supabase = Supabase.instance.client;
+      
+      // Create realtime subscription
+      _realtimeSubscription = supabase
+          .from('messages')
+          .stream(primaryKey: ['id'])
+          .eq('chat_id', event.chatId)  // Server-side filter!
+          .listen(
+            (List<Map<String, dynamic>> data) {
+              // New message(s) received via WebSocket!
+              for (final messageJson in data) {try {
+                  final message = Message.fromJson(messageJson);
+                  
+                  // Skip own messages (prevent duplicates with optimistic update)
+                  if (message.senderId != _currentUserId) {
+                    add(ChatMessageReceived(message: message));
+                  }
+                } catch (e) {
+                  print('Error parsing realtime message: $e');
+                }
+              }
+            },
+            onError: (error) {
+              // Handle subscription errors
+              print('Realtime subscription error: $error');
+            },
+          );
+          
+    } catch (e) {
+      print('Failed to subscribe to realtime: $e');
+    }
   }
   
   /// Unsubscribe from realtime
