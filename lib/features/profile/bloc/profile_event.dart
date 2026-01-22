@@ -62,6 +62,28 @@ class ProfileLoadRequested extends ProfileEvent {
   List<Object?> get props => [userId];
 }
 
+/// Event to load all profiles (for chat list)
+/// 
+/// **When fired:**
+/// - User opens chat list screen
+/// - Need to display all available users
+/// 
+/// **What happens:**
+/// 1. UI dispatches this event
+/// 2. BLoC calls repository.getAllProfiles()
+/// 3. BLoC emits ProfilesLoaded state with list
+/// 
+/// **Example:**
+/// ```dart
+/// context.read<ProfileBloc>().add(
+///   const ProfilesLoadAllRequested(),
+/// );
+/// ```
+class ProfilesLoadAllRequested extends ProfileEvent {
+  const ProfilesLoadAllRequested();
+}
+
+
 // =============================================================================
 // CREATE OPERATION EVENT
 // =============================================================================

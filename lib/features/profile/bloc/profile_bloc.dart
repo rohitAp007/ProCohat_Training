@@ -82,6 +82,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     // Register event handlers
     // When ProfileLoadRequested event comes → call _onLoadRequested
     on<ProfileLoadRequested>(_onLoadRequested);
+    on<ProfilesLoadAllRequested>(_onLoadAllRequested);  // NEW: For chat list
     on<ProfileCreateRequested>(_onCreateRequested);
     on<ProfileUpdateRequested>(_onUpdateRequested);
     on<ProfileDeleteRequested>(_onDeleteRequested);
@@ -168,6 +169,69 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       ));
     }
   }
+  
+  // ===========================================================================
+  // EVENT HANDLER: LOAD ALL PROFILES
+  // ===========================================================================
+  
+  /// Handles ProfilesLoadAllRequested event
+  /// 
+  /// **Flow:**
+  /// 1. Emit loading state
+  /// 2. Call repository to get all profiles
+  /// 3. Emit ProfilesLoaded with list
+  /// 
+  /// **Use case:** Chat list screen needs all users
+  /// 
+  /// **States emitted:**
+  /// - ProfileLoading → immediately
+  /// - ProfilesLoaded(profiles) → on success
+  /// - ProfileError() → on failure
+  Future<void> _onLoadAllRequested(
+    ProfilesLoadAllRequested event,
+    Emitter<ProfileState> emit,
+  ) async {
+    print('📥 ProfileBloc: ProfilesLoadAllRequested event received');
+    
+    try {
+      // STEP 1: Emit loading state
+      print('⏳ ProfileBloc: Emitting ProfileLoading state');
+      emit(const ProfileLoading());
+      
+      // STEP 2: Fetch all profiles from repository
+      print('🔄 ProfileBloc: Calling repository.getAllProfiles()');
+      final profiles = await _repository.getAllProfiles();
+      
+      // STEP 3: Emit loaded state with profiles
+      print('✅ ProfileBloc: Got ${profiles.length} profiles');
+      print('✅ ProfileBloc: Emitting ProfilesLoaded state');
+      emit(ProfilesLoaded(profiles: profiles));
+      
+    } on NetworkException catch (e) {
+      print('🔴 ProfileBloc: NetworkException - ${e.message}');
+      emit(ProfileError(
+        message: e.message,
+        isRecoverable: true,
+      ));
+      
+    } on ProfileException catch (e) {
+      print('🔴 ProfileBloc: ProfileException - ${e.message}');
+      emit(ProfileError(
+        message: e.message,
+        isRecoverable: e.isRecoverable,
+        technicalDetails: e.technicalDetails,
+      ));
+      
+    } catch (e) {
+      print('🔴 ProfileBloc: Unexpected error - $e');
+      emit(ProfileError(
+        message: 'Failed to load users',
+        isRecoverable: true,
+        technicalDetails: e.toString(),
+      ));
+    }
+  }
+
   
   // ===========================================================================
   // EVENT HANDLER: CREATE PROFILE
