@@ -19,6 +19,10 @@ import 'package:supabase_flutter_app/features/chat/ui/chat_screen.dart';
 import 'package:supabase_flutter_app/features/chat/bloc/chat_bloc.dart';
 import 'package:supabase_flutter_app/features/chat/data/message_repository.dart';
 import 'package:supabase_flutter_app/features/chat/data/chat_repository.dart';
+import 'package:supabase_flutter_app/features/profile/ui/profile_view_screen.dart';
+import 'package:supabase_flutter_app/features/profile/data/profile_repository.dart';
+import 'package:supabase_flutter_app/features/auth/data/auth_repository.dart';
+import 'package:supabase_flutter_app/features/auth/login/ui/login_screen.dart';
 
 /// ChatListScreen - Shows all users you can chat with
 /// 
@@ -86,11 +90,38 @@ class _ChatListScreenState extends State<ChatListScreen> {
             );
           },
         ),
-        IconButton(
+        // Settings menu
+        PopupMenuButton<String>(
           icon: const Icon(Icons.more_vert),
-          onPressed: () {
-            // TODO: Show menu (future)
+          onSelected: (value) {
+            if (value == 'profile') {
+              _navigateToProfile();
+            } else if (value == 'logout') {
+              _showLogoutDialog();
+            }
           },
+          itemBuilder: (context) => [
+            const PopupMenuItem(
+              value: 'profile',
+              child: Row(
+                children: [
+                  Icon(Icons.person, size: 20),
+                  SizedBox(width: 12),
+                  Text('Profile'),
+                ],
+              ),
+            ),
+            const PopupMenuItem(
+              value: 'logout',
+              child: Row(
+                children: [
+                  Icon(Icons.logout, size: 20),
+                  SizedBox(width: 12),
+                  Text('Logout'),
+                ],
+              ),
+            ),
+          ],
         ),
       ],
     );
