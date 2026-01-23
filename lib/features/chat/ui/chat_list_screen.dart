@@ -16,6 +16,9 @@ import 'package:supabase_flutter_app/features/profile/data/profile_model.dart';
 import 'package:supabase_flutter_app/features/chat/ui/widgets/chat_list_tile.dart';
 import 'package:supabase_flutter_app/features/chat/ui/widgets/empty_chat_list.dart';
 import 'package:supabase_flutter_app/features/chat/ui/chat_screen.dart';
+import 'package:supabase_flutter_app/features/chat/bloc/chat_bloc.dart';
+import 'package:supabase_flutter_app/features/chat/data/message_repository.dart';
+import 'package:supabase_flutter_app/features/chat/data/chat_repository.dart';
 
 /// ChatListScreen - Shows all users you can chat with
 /// 
@@ -305,34 +308,26 @@ class _ChatListScreenState extends State<ChatListScreen> {
   // =========================================================================
   
   void _openChat(Profile user) {
+    // Get current user ID
+    final currentUserId = _getCurrentUserId();
+    if (currentUserId == null) return;
+    
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => ChatScreen(
-          otherUserId: user.userId,
-          otherUserName: user.fullName,
+        builder: (_) => BlocProvider(
+          create: (_) => ChatBloc(
+            messageRepository: MessageRepository(),
+            chatRepository: ChatRepository(),
+            currentUserId: currentUserId,
+          ),
+          child: ChatScreen(
+            otherUserId: user.userId,
+            otherUserName: user.fullName,
+          ),
         ),
       ),
     );
-  }
-}
-
-// ============================================================================
-// HELPER EXTENSION
-// ============================================================================
-
-/// Extension to get current user ID from ProfileBloc state
-extension ProfileStateExtension on ProfileState {
-  String? getUserId() {
-    if (this is ProfileLoaded) {
-      return (this as ProfileLoaded).profile.userId;
-    }
-    if (this is ProfilesLoaded) {
-      // Try to get from somewhere else
-      // For now, return null
-      return null;
-    }
-    return null;
   }
 }
 
