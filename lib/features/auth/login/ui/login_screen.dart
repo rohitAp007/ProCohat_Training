@@ -4,7 +4,9 @@ import '../../data/auth_repository.dart';
 import '../bloc/login_bloc.dart';
 import '../bloc/login_state.dart';
 import '../widgets/login_form.dart';
-import '../../home/home_screen.dart';
+import 'package:supabase_flutter_app/features/chat/ui/chat_list_screen.dart';
+import 'package:supabase_flutter_app/features/profile/bloc/profile_bloc.dart';
+import 'package:supabase_flutter_app/features/profile/data/profile_repository.dart';
 import 'package:supabase_flutter_app/core/widgets/custom_snackbar.dart';
 
 class LoginScreen extends StatelessWidget {
@@ -24,7 +26,10 @@ class LoginScreen extends StatelessWidget {
               CustomSnackBar.showSuccess(context, 'Login successful!');
               Navigator.of(context).pushReplacement(
                 MaterialPageRoute(
-                  builder: (_) => const HomeScreen(),
+                  builder: (_) => BlocProvider(
+                    create: (_) => ProfileBloc(repository: ProfileRepository()),
+                    child: const ChatListScreen(),
+                  ),
                 ),
               );
             }

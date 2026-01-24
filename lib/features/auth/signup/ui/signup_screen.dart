@@ -4,7 +4,9 @@ import 'package:supabase_flutter_app/features/auth/data/auth_repository.dart';
 import 'package:supabase_flutter_app/features/auth/signup/bloc/signup_bloc.dart';
 import 'package:supabase_flutter_app/features/auth/signup/bloc/signup_state.dart';
 import 'package:supabase_flutter_app/features/auth/signup/widgets/signup_form.dart';
-import 'package:supabase_flutter_app/features/auth/home/home_screen.dart';
+import 'package:supabase_flutter_app/features/chat/ui/chat_list_screen.dart';
+import 'package:supabase_flutter_app/features/profile/bloc/profile_bloc.dart';
+import 'package:supabase_flutter_app/features/profile/data/profile_repository.dart';
 import 'package:supabase_flutter_app/core/widgets/custom_snackbar.dart';
 
 class SignupScreen extends StatelessWidget {
@@ -31,7 +33,10 @@ class SignupScreen extends StatelessWidget {
               );
               Navigator.of(context).pushReplacement(
                 MaterialPageRoute(
-                  builder: (_) => const HomeScreen(),
+                  builder: (_) => BlocProvider(
+                    create: (_) => ProfileBloc(repository: ProfileRepository()),
+                    child: const ChatListScreen(),
+                  ),
                 ),
               );
             }

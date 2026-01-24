@@ -125,6 +125,39 @@ class ProfileLoaded extends ProfileState {
   List<Object?> get props => [profile, isEditMode];
 }
 
+/// Multiple profiles loaded (for chat list)
+/// 
+/// **When active:**
+/// - Chat list screen displayed all users
+/// - Profile directory loaded
+/// 
+/// **UI should show:**
+/// - List of all users
+/// - Profile pictures
+/// - Names
+/// 
+/// **Example:**
+/// ```dart
+/// if (state is ProfilesLoaded) {
+///   return ListView.builder(
+///     itemCount: state.profiles.length,
+///     itemBuilder: (context, index) {
+///       return UserTile(profile: state.profiles[index]);
+///     },
+///   );
+/// }
+/// ```
+class ProfilesLoaded extends ProfileState {
+  /// List of all loaded profiles
+  final List<Profile> profiles;
+  
+  const ProfilesLoaded({required this.profiles});
+  
+  @override
+  List<Object?> get props => [profiles];
+}
+
+
 // =============================================================================
 // EMPTY STATE
 // =============================================================================
