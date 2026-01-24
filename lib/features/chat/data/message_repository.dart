@@ -112,7 +112,7 @@ class MessageRepository {
       // Network errors
       if (e.toString().toLowerCase().contains('socket') ||
           e.toString().toLowerCase().contains('network')) {
-        throw const NetworkException();
+        throw NetworkException();
       }
       
       throw MessageSendFailedException(e.toString());
@@ -162,7 +162,7 @@ class MessageRepository {
       
       // Add pagination filter if provided
       if (before != null) {
-        query = query.lt('created_at', before.toIso8601String());
+        query = query.filter('created_at', 'lt', before.toIso8601String());
       }
       
       // Execute query
@@ -184,7 +184,7 @@ class MessageRepository {
       
       if (e.toString().toLowerCase().contains('socket') ||
           e.toString().toLowerCase().contains('network')) {
-        throw const NetworkException();
+        throw NetworkException();
       }
       
       throw ChatLoadFailedException(e.toString());
@@ -209,7 +209,7 @@ class MessageRepository {
     } catch (e) {
       if (e.toString().toLowerCase().contains('socket') ||
           e.toString().toLowerCase().contains('network')) {
-        throw const NetworkException();
+        throw NetworkException();
       }
       
       throw ChatLoadFailedException(e.toString());
@@ -270,7 +270,7 @@ class MessageRepository {
       
       if (e.toString().toLowerCase().contains('socket') ||
           e.toString().toLowerCase().contains('network')) {
-        throw const NetworkException();
+        throw NetworkException();
       }
       
       throw ChatException(
@@ -315,7 +315,7 @@ class MessageRepository {
       
       if (e.toString().toLowerCase().contains('socket') ||
           e.toString().toLowerCase().contains('network')) {
-        throw const NetworkException();
+        throw NetworkException();
       }
       
       throw ChatException(

@@ -19,6 +19,8 @@ import 'package:supabase_flutter_app/features/chat/data/chat_repository.dart';
 import 'package:supabase_flutter_app/features/chat/data/chat_id_service.dart';
 import 'package:supabase_flutter_app/features/chat/ui/widgets/message_bubble.dart';
 import 'package:supabase_flutter_app/features/chat/ui/widgets/message_input.dart';
+import 'package:supabase_flutter_app/features/chat/ui/widgets/date_separator.dart';
+import 'package:supabase_flutter_app/features/chat/utils/chat_helpers.dart';
 
 /// ChatScreen - Real-time messaging interface
 /// 
@@ -194,7 +196,7 @@ class _ChatScreenState extends State<ChatScreen> {
   }
   
   // =========================================================================
-  // MESSAGES LIST (Reverse ListView)
+  // MESSAGES LIST (Reverse ListView with Grouping)
   // =========================================================================
   
   Widget _buildMessagesList(List messages) {
@@ -211,9 +213,44 @@ class _ChatScreenState extends State<ChatScreen> {
         final message = messages[index];
         final isMe = message.senderId == _currentUserId;
         
-        return MessageBubble(
-          message: message,
-          isMe: isMe,
+        // Get previous message for grouping logic
+        // (In reverse list, previous = next index)
+        final previousMessage = index < messages.length - 1 
+            ? messages[index + 1] 
+            : null;
+        
+        // Get next message for date separator
+        // (In reverse list, next = previous index)  
+        final nextMessage = index > 0 
+            ? messages[index - 1] 
+            : null;
+        
+        // Determine if we should group with previous message
+        final shouldGroup = previousMessage != null &&
+            ChatHelpers.shouldGroupMessages(
+              previous: previousMessage,
+              current: message,
+            );
+        
+        // Determine if date separator needed
+        final needsDateSep = ChatHelpers.needsDateSeparator(
+          previousDate: nextMessage?.createdAt,
+          currentDate: message.createdAt,
+        );
+        
+        return Column(
+          children: [
+            // Date separator (if needed)
+            if (needsDateSep)
+              DateSeparator(date: message.createdAt),
+            
+            // Message bubble
+            MessageBubble(
+              message: message,
+              isMe: isMe,
+              showAvatar: !shouldGroup,  // Hide avatar if grouped
+            ),
+          ],
         );
       },
     );
