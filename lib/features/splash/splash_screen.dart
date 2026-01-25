@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter_app/core/auth/auth_state_manager.dart';
 import 'package:supabase_flutter_app/features/auth/login/ui/login_screen.dart';
-import 'package:supabase_flutter_app/features/auth/home/home_screen.dart';
+import 'package:supabase_flutter_app/features/onboarding/onboarding_screen.dart';
+import 'package:supabase_flutter_app/features/chat/ui/chat_list_screen.dart';
+import 'package:supabase_flutter_app/features/profile/bloc/profile_bloc.dart';
+import 'package:supabase_flutter_app/features/profile/data/profile_repository.dart';
 import 'package:supabase_flutter_app/core/animations/fade_in_widget.dart';
 
 /// Splash screen with auth check
@@ -29,39 +34,49 @@ class _SplashScreenState extends State<SplashScreen> {
 
     if (!mounted) return;
 
-    // Check authentication state
+    // STEP 1: Check if onboarding completed
+    final prefs = await SharedPreferences.getInstance();
+    final onboardingCompleted = prefs.getBool('onboarding_completed') ?? false;
+    
+    if (!onboardingCompleted) {
+      // First time user → Onboarding
+      _navigateToScreen(const OnboardingScreen());
+      return;
+    }
+
+    // STEP 2: Check authentication state
     final isAuthenticated = _authStateManager.isAuthenticated;
 
-    // Navigate to appropriate screen with fade transition
+// Navigate to appropriate screen with fade transition
     if (isAuthenticated) {
-      Navigator.of(context).pushReplacement(
-        PageRouteBuilder(
-          pageBuilder: (context, animation, secondaryAnimation) =>
-              const HomeScreen(),
-          transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            return FadeTransition(
-              opacity: animation,
-              child: child,
-            );
-          },
-          transitionDuration: const Duration(milliseconds: 500),
+      // Logged in → ChatListScreen
+      _navigateToScreen(
+        BlocProvider(
+          create: (context) => ProfileBloc(
+            repository: ProfileRepository(),
+          )..add(const ProfilesLoadAllRequested()),
+          child: const ChatListScreen(),
         ),
       );
     } else {
-      Navigator.of(context).pushReplacement(
-        PageRouteBuilder(
-          pageBuilder: (context, animation, secondaryAnimation) =>
-              const LoginScreen(),
-          transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            return FadeTransition(
-              opacity: animation,
-              child: child,
-            );
-          },
-          transitionDuration: const Duration(milliseconds: 500),
-        ),
-      );
+      // Not logged in → LoginScreen
+      _navigateToScreen(const LoginScreen());
     }
+  }
+
+  void _navigateToScreen(Widget screen) {
+    Navigator.of(context).pushReplacement(
+      PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) => screen,
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          return FadeTransition(
+            opacity: animation,
+            child: child,
+          );
+        },
+        transitionDuration: const Duration(milliseconds: 500),
+      ),
+    );
   }
 
   @override

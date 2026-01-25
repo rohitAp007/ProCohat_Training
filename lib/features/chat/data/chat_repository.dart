@@ -112,7 +112,7 @@ class ChatRepository {
       
       if (e.toString().toLowerCase().contains('socket') ||
           e.toString().toLowerCase().contains('network')) {
-        throw const NetworkException();
+        throw NetworkException();
       }
       
       throw ChatException(
