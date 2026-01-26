@@ -103,7 +103,7 @@ class MessageRepository {
       }
       throw MessageSendFailedException(
         'Failed to send message: ${e.message}',
-        details: e.details,
+        details: e.details?.toString(),
       );
       
     } catch (e) {
@@ -162,7 +162,7 @@ class MessageRepository {
       
       // Add pagination filter if provided
       if (before != null) {
-        query = query.filter('created_at', 'lt', before.toIso8601String());
+        query = query.lt('created_at', before.toIso8601String());
       }
       
       // Execute query
@@ -176,7 +176,7 @@ class MessageRepository {
     } on PostgrestException catch (e) {
       throw ChatLoadFailedException(
         'Failed to load messages: ${e.message}',
-        details: e.details,
+        details: e.details?.toString(),
       );
       
     } catch (e) {
@@ -262,7 +262,7 @@ class MessageRepository {
       throw ChatException(
         'Failed to update message: ${e.message}',
         code: 'UPDATE_FAILED',
-        technicalDetails: e.details,
+        technicalDetails: e.details?.toString(),
       );
       
     } catch (e) {
@@ -307,7 +307,7 @@ class MessageRepository {
       throw ChatException(
         'Failed to delete message: ${e.message}',
         code: 'DELETE_FAILED',
-        technicalDetails: e.details,
+        technicalDetails: e.details?.toString(),
       );
       
     } catch (e) {
