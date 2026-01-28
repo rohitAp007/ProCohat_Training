@@ -17,11 +17,13 @@
 /// - JSON serialization in practice
 ///
 /// ============================================================================
+library;
 
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'profile_model.dart';
 import 'profile_exceptions.dart';
 import 'package:supabase_flutter_app/features/auth/data/auth_exceptions.dart';
+import 'package:supabase_flutter_app/core/utils/app_logger.dart';
 
 /// Profile Repository
 /// 
@@ -100,38 +102,35 @@ class ProfileRepository {
   /// - [NetworkException] if no internet
   Future<Profile> createProfile(Profile profile) async {
     try {
-      print('🔧 ProfileRepository: createProfile called');
+      AppLogger.repository('ProfileRepository', 'createProfile');
       
       // STEP 1: Convert Profile to JSON
       final profileData = profile.toJson();
-      print('📝 ProfileRepository: Profile JSON (before cleanup): $profileData');
+      AppLogger.debug('Profile JSON (before cleanup): $profileData', tag: 'ProfileRepository');
       
       // STEP 2: Remove id field (database will auto-generate)
       // PostgreSQL expects UUID type, empty string causes error
       profileData.remove('id');
-      print('📝 ProfileRepository: Profile JSON (after cleanup): $profileData');
+      AppLogger.debug('Profile JSON (after cleanup): $profileData', tag: 'ProfileRepository');
       
       // STEP 3: INSERT into database
-      print('📡 ProfileRepository: Inserting into database...');
+      AppLogger.debug('Inserting into database...', tag: 'ProfileRepository');
       final response = await _supabaseClient
           .from(_tableName)
           .insert(profileData)
           .select()
           .single();
       
-      print('✅ ProfileRepository: Insert successful!');
-      print('📦 ProfileRepository: Response: $response');
+      AppLogger.info('Profile insert successful', tag: 'ProfileRepository');
+      AppLogger.debug('Response: $response', tag: 'ProfileRepository');
       
       // STEP 3: Convert response to Profile
       return Profile.fromJson(response);
       
     } on PostgrestException catch (e) {
       // HANDLE DATABASE ERRORS
-      print('🔴 ProfileRepository: PostgrestException caught!');
-      print('Code: ${e.code}');
-      print('Message: ${e.message}');
-      print('Details: ${e.details}');
-      print('Hint: ${e.hint}');
+      AppLogger.error('PostgrestException caught', error: e, tag: 'ProfileRepository');
+      AppLogger.debug('Code: ${e.code}, Details: ${e.details}, Hint: ${e.hint}', tag: 'ProfileRepository');
       
       if (e.code == '23505') {
         // 23505 = unique constraint violation
@@ -143,9 +142,7 @@ class ProfileRepository {
       
     } catch (e) {
       // HANDLE OTHER ERRORS
-      print('🔴 ProfileRepository: Unexpected error!');
-      print('Error type: ${e.runtimeType}');
-      print('Error: $e');
+      AppLogger.error('Unexpected error during profile creation', error: e, tag: 'ProfileRepository');
       
       if (e.toString().toLowerCase().contains('socket') ||
           e.toString().toLowerCase().contains('network')) {
@@ -191,7 +188,7 @@ class ProfileRepository {
   Future<Profile?> getProfile(String userId) async {
     try {
       // DEBUG: Print what we're searching for
-      print('🔍 ProfileRepository: Loading profile for user_id: $userId');
+      AppLogger.repository('ProfileRepository', 'getProfile', userId);
       
       // QUERY DATABASE
       // SELECT * FROM profiles WHERE user_id = userId LIMIT 1
@@ -202,24 +199,22 @@ class ProfileRepository {
           .maybeSingle();          // Return null if not found
       
       // DEBUG: Print response
-      print('📦 ProfileRepository: Response: $response');
+      AppLogger.debug('Response: $response', tag: 'ProfileRepository');
       
       // CHECK RESPONSE
       if (response == null) {
         // No profile found
-        print('❌ ProfileRepository: No profile found for user_id: $userId');
+        AppLogger.debug('No profile found for user_id: $userId', tag: 'ProfileRepository');
         return null;
       }
       
       // CONVERT TO PROFILE
-      print('✅ ProfileRepository: Profile found, converting to object');
+      AppLogger.debug('Profile found, converting to object', tag: 'ProfileRepository');
       return Profile.fromJson(response);
       
     } catch (e, stackTrace) {
       // DEBUG: Print full error
-      print('🔴 ProfileRepository ERROR:');
-      print('Error: $e');
-      print('Stack trace: $stackTrace');
+      AppLogger.error('Error loading profile', error: e, stackTrace: stackTrace, tag: 'ProfileRepository');
       
       // HANDLE ERRORS
       if (e.toString().toLowerCase().contains('socket') ||

@@ -7,6 +7,7 @@
 /// LEARNING: Reusable widgets reduce code duplication
 /// 
 /// ============================================================================
+library;
 
 import 'package:flutter/material.dart';
 

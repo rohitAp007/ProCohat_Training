@@ -104,7 +104,7 @@ class ChatRepository {
       throw ChatException(
         'Failed to get or create chat: ${e.message}',
         code: 'CHAT_CREATE_FAILED',
-        technicalDetails: e.details,
+        technicalDetails: e.details?.toString(),
       );
       
     } catch (e) {
@@ -153,7 +153,7 @@ class ChatRepository {
     } catch (e) {
       if (e.toString().toLowerCase().contains('socket') ||
           e.toString().toLowerCase().contains('network')) {
-        throw const NetworkException();
+        throw NetworkException();
       }
       
       throw ChatException(
@@ -196,7 +196,7 @@ class ChatRepository {
       throw ChatException(
         'Failed to load chats: ${e.message}',
         code: 'CHATS_FETCH_FAILED',
-        technicalDetails: e.details,
+        technicalDetails: e.details?.toString(),
       );
       
     } catch (e) {
@@ -204,7 +204,7 @@ class ChatRepository {
       
       if (e.toString().toLowerCase().contains('socket') ||
           e.toString().toLowerCase().contains('network')) {
-        throw const NetworkException();
+        throw NetworkException();
       }
       
       throw ChatException(
@@ -252,7 +252,7 @@ class ChatRepository {
       throw ChatException(
         'Failed to update chat: ${e.message}',
         code: 'CHAT_UPDATE_FAILED',
-        technicalDetails: e.details,
+        technicalDetails: e.details?.toString(),
       );
       
     } catch (e) {
@@ -260,7 +260,7 @@ class ChatRepository {
       
       if (e.toString().toLowerCase().contains('socket') ||
           e.toString().toLowerCase().contains('network')) {
-        throw const NetworkException();
+        throw NetworkException();
       }
       
       throw ChatException(
@@ -291,7 +291,7 @@ class ChatRepository {
       throw ChatException(
         'Failed to delete chat: ${e.message}',
         code: 'CHAT_DELETE_FAILED',
-        technicalDetails: e.details,
+        technicalDetails: e.details?.toString(),
       );
       
     } catch (e) {
@@ -299,7 +299,7 @@ class ChatRepository {
       
       if (e.toString().toLowerCase().contains('socket') ||
           e.toString().toLowerCase().contains('network')) {
-        throw const NetworkException();
+        throw NetworkException();
       }
       
       throw ChatException(

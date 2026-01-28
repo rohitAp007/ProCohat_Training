@@ -42,7 +42,7 @@ class WhatsAppTheme {
     ),
     
     // Floating Action Button Theme
-    floatingActionButtonTheme: const FloatingActionButtonTheme Data(
+    floatingActionButtonTheme: const FloatingActionButtonThemeData(
       backgroundColor: tealGreen,
       foregroundColor: Colors.white,
       elevation: 4,
@@ -117,7 +117,7 @@ class WhatsAppTheme {
     ),
     
     // Elevated Button Theme
-    elevatedButtonTheme: Elevated ButtonThemeData(
+    elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
         backgroundColor: tealGreen,
         foregroundColor: Colors.white,

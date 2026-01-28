@@ -11,12 +11,19 @@
 import 'package:supabase_flutter_app/core/error/exceptions.dart';
 
 /// Base exception for chat-related errors
-class ChatException extends AppException {
+class ChatException implements Exception {
+  final String message;
+  final String? code;
+  final String? technicalDetails;
+
   const ChatException(
-    super.message, {
-    super.code,
-    super.technicalDetails,
+    this.message, {
+    this.code,
+    this.technicalDetails,
   });
+
+  @override
+  String toString() => 'ChatException: $message${code != null ? ' ($code)' : ''}';
 }
 
 /// Chat not found exception

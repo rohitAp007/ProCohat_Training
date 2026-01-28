@@ -96,7 +96,7 @@ class _SplashScreenState extends State<SplashScreen> {
             end: Alignment.bottomRight,
             colors: [
               Theme.of(context).primaryColor,
-              Theme.of(context).primaryColor.withOpacity(0.8),
+              Theme.of(context).primaryColor.withValues(alpha: 0.8),
             ],
           ),
         ),
@@ -136,7 +136,7 @@ class _SplashScreenState extends State<SplashScreen> {
                   'Flutter BLoC + Supabase',
                   style: TextStyle(
                     fontSize: 16,
-                    color: Colors.white.withOpacity(0.9),
+                    color: Colors.white.withValues(alpha: 0.9),
                   ),
                 ),
               ),
@@ -158,7 +158,7 @@ class _SplashScreenState extends State<SplashScreen> {
                   'Version 1.0.0',
                   style: TextStyle(
                     fontSize: 12,
-                    color: Colors.white.withOpacity(0.7),
+                    color: Colors.white.withValues(alpha: 0.7),
                   ),
                 ),
               ),

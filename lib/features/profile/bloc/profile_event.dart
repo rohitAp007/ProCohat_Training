@@ -6,7 +6,7 @@
 /// 
 /// LEARNING: Events represent "what happened" or "what the user wants to do"
 /// 
-/// ============================================================================
+/// ============================================================================\r\nlibrary;
 
 import 'package:equatable/equatable.dart';
 import '../data/profile_model.dart';

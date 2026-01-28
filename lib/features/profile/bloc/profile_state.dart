@@ -7,6 +7,7 @@
 /// LEARNING: States represent "what condition is the UI in right now"
 /// 
 /// ============================================================================
+library;
 
 import 'package:equatable/equatable.dart';
 import '../data/profile_model.dart';

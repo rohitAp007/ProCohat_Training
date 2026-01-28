@@ -11,6 +11,7 @@
 /// 4. Formatting dates and data for display
 ///
 /// ============================================================================
+library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -23,6 +24,7 @@ import '../widgets/profile_avatar.dart';
 import '../widgets/profile_info_card.dart';
 import 'profile_edit_screen.dart';
 import 'package:supabase_flutter_app/core/widgets/custom_snackbar.dart';
+import 'package:supabase_flutter_app/core/utils/app_logger.dart';
 
 /// ProfileViewScreen - Display user's profile
 /// 
@@ -58,12 +60,12 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
     // This ensures BLoC is ready to receive events
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (widget.userId != null && widget.userId!.isNotEmpty) {
-        print('📤 ProfileViewScreen: Dispatching ProfileLoadRequested');
+        AppLogger.debug('Dispatching ProfileLoadRequested', tag: 'ProfileViewScreen');
         context.read<ProfileBloc>().add(
           ProfileLoadRequested(userId: widget.userId!),
         );
       } else {
-        print('⚠️ ProfileViewScreen: No userId provided');
+        AppLogger.warning('No userId provided', tag: 'ProfileViewScreen');
       }
     });
   }

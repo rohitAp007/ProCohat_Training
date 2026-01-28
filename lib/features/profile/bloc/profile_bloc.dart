@@ -24,6 +24,7 @@ import 'profile_state.dart';
 import '../data/profile_repository.dart';
 import '../data/profile_exceptions.dart';
 import 'package:supabase_flutter_app/features/auth/data/auth_exceptions.dart';
+import 'package:supabase_flutter_app/core/utils/app_logger.dart';
 
 /// ProfileBloc - Manages profile state and business logic
 /// 
@@ -75,9 +76,9 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       : _repository = repository,
         super(const ProfileInitial()) {
     // DEBUG: Log BLoC initialization
-    print('🏗️ ProfileBloc: Constructor called');
-    print('🏗️ ProfileBloc: Initial state: ProfileInitial');
-    print('🏗️ ProfileBloc: Registering event handlers...');
+    AppLogger.debug('Constructor called', tag: 'ProfileBloc');
+    AppLogger.debug('Initial state: ProfileInitial', tag: 'ProfileBloc');
+    AppLogger.debug('Registering event handlers...', tag: 'ProfileBloc');
     
     // Register event handlers
     // When ProfileLoadRequested event comes → call _onLoadRequested
@@ -88,7 +89,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     on<ProfileDeleteRequested>(_onDeleteRequested);
     on<ProfileEditToggled>(_onEditToggled);
     
-    print('✅ ProfileBloc: All event handlers registered');
+    AppLogger.debug('All event handlers registered', tag: 'ProfileBloc');
   }
   
   // ===========================================================================
@@ -120,31 +121,31 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     Emitter<ProfileState> emit,
   ) async {
     // DEBUG: Print event received
-    print('🎯 ProfileBloc: Received ProfileLoadRequested for userId: ${event.userId}');
+    AppLogger.blocEvent('ProfileBloc', 'ProfileLoadRequested for userId: ${event.userId}');
     
     // STEP 1: Show loading state
-    print('⏳ ProfileBloc: Emitting ProfileLoading state');
+    AppLogger.debug('Emitting ProfileLoading state', tag: 'ProfileBloc');
     emit(const ProfileLoading());
     
     try {
       // STEP 2: Call repository to fetch profile
-      print('📡 ProfileBloc: Calling repository.getProfile(${event.userId})');
+      AppLogger.repository('ProfileRepository', 'getProfile', event.userId);
       final profile = await _repository.getProfile(event.userId);
       
       // STEP 3: Check if profile was found
       if (profile != null) {
         // Profile exists - show it
-        print('✅ ProfileBloc: Profile found! Emitting ProfileLoaded state');
+        AppLogger.debug('Profile found! Emitting ProfileLoaded state', tag: 'ProfileBloc');
         emit(ProfileLoaded(profile: profile, isEditMode: false));
       } else {
         // No profile found - show empty state
-        print('📭 ProfileBloc: No profile found. Emitting ProfileEmpty state');
+        AppLogger.debug('No profile found. Emitting ProfileEmpty state', tag: 'ProfileBloc');
         emit(ProfileEmpty(userId: event.userId));
       }
       
     } on NetworkException catch (e) {
       // HANDLE NETWORK ERRORS
-      print('🔴 ProfileBloc: NetworkException caught - ${e.message}');
+      AppLogger.error('NetworkException caught', error: e, tag: 'ProfileBloc');
       emit(ProfileError(
         message: e.message,
         isRecoverable: true,
@@ -152,7 +153,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       
     } on ProfileException catch (e) {
       // HANDLE PROFILE-SPECIFIC ERRORS
-      print('🔴 ProfileBloc: ProfileException caught - ${e.message}');
+      AppLogger.error('ProfileException caught', error: e, tag: 'ProfileBloc');
       emit(ProfileError(
         message: e.message,
         isRecoverable: e.isRecoverable,
@@ -161,7 +162,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       
     } catch (e) {
       // HANDLE UNEXPECTED ERRORS
-      print('🔴 ProfileBloc: Unexpected error caught - $e');
+      AppLogger.error('Unexpected error during profile load', error: e, tag: 'ProfileBloc');
       emit(ProfileError(
         message: 'Failed to load profile',
         isRecoverable: true,
@@ -191,31 +192,31 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     ProfilesLoadAllRequested event,
     Emitter<ProfileState> emit,
   ) async {
-    print('📥 ProfileBloc: ProfilesLoadAllRequested event received');
+    AppLogger.blocEvent('ProfileBloc', 'ProfilesLoadAllRequested');
     
     try {
       // STEP 1: Emit loading state
-      print('⏳ ProfileBloc: Emitting ProfileLoading state');
+      AppLogger.debug('Emitting ProfileLoading state', tag: 'ProfileBloc');
       emit(const ProfileLoading());
       
       // STEP 2: Fetch all profiles from repository
-      print('🔄 ProfileBloc: Calling repository.getAllProfiles()');
+      AppLogger.repository('ProfileRepository', 'getAllProfiles');
       final profiles = await _repository.getAllProfiles();
       
       // STEP 3: Emit loaded state with profiles
-      print('✅ ProfileBloc: Got ${profiles.length} profiles');
-      print('✅ ProfileBloc: Emitting ProfilesLoaded state');
+      AppLogger.debug('Got ${profiles.length} profiles', tag: 'ProfileBloc');
+      AppLogger.debug('Emitting ProfilesLoaded state', tag: 'ProfileBloc');
       emit(ProfilesLoaded(profiles: profiles));
       
     } on NetworkException catch (e) {
-      print('🔴 ProfileBloc: NetworkException - ${e.message}');
+      AppLogger.error('NetworkException', error: e, tag: 'ProfileBloc');
       emit(ProfileError(
         message: e.message,
         isRecoverable: true,
       ));
       
     } on ProfileException catch (e) {
-      print('🔴 ProfileBloc: ProfileException - ${e.message}');
+      AppLogger.error('ProfileException', error: e, tag: 'ProfileBloc');
       emit(ProfileError(
         message: e.message,
         isRecoverable: e.isRecoverable,
@@ -223,7 +224,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       ));
       
     } catch (e) {
-      print('🔴 ProfileBloc: Unexpected error - $e');
+      AppLogger.error('Unexpected error loading users', error: e, tag: 'ProfileBloc');
       emit(ProfileError(
         message: 'Failed to load users',
         isRecoverable: true,
@@ -263,44 +264,44 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     Emitter<ProfileState> emit,
   ) async {
     // DEBUG: Log create request
-    print('🎯 ProfileBloc: Received ProfileCreateRequested');
-    print('📝 ProfileBloc: Profile data: ${event.profile.toJson()}');
+    AppLogger.blocEvent('ProfileBloc', 'ProfileCreateRequested');
+    AppLogger.debug('Profile data: ${event.profile.toJson()}', tag: 'ProfileBloc');
     
     // STEP 1: Show loading
-    print('⏳ ProfileBloc: Emitting ProfileLoading state');
+    AppLogger.debug('Emitting ProfileLoading state', tag: 'ProfileBloc');
     emit(const ProfileLoading());
     
     try {
       // STEP 2: Create profile in database
-      print('📡 ProfileBloc: Calling repository.createProfile()');
+      AppLogger.repository('ProfileRepository', 'createProfile');
       final createdProfile = await _repository.createProfile(event.profile);
       
       // STEP 3: Emit success message
-      print('✅ ProfileBloc: Profile created! Emitting success');
+      AppLogger.info('Profile created successfully', tag: 'ProfileBloc');
       emit(const ProfileOperationSuccess(
         message: 'Profile created successfully!',
       ));
       
       // STEP 4: Emit loaded state with new profile
-      print('📦 ProfileBloc: Emitting ProfileLoaded state');
+      AppLogger.debug('Emitting ProfileLoaded state', tag: 'ProfileBloc');
       emit(ProfileLoaded(profile: createdProfile, isEditMode: false));
       
     } on ProfileAlreadyExistsException catch (e) {
-      print('🔴 ProfileBloc: ProfileAlreadyExistsException - ${e.message}');
+      AppLogger.error('ProfileAlreadyExistsException', error: e, tag: 'ProfileBloc');
       emit(ProfileError(
         message: e.message,
         isRecoverable: false,
       ));
       
     } on NetworkException catch (e) {
-      print('🔴 ProfileBloc: NetworkException - ${e.message}');
+      AppLogger.error('NetworkException', error: e, tag: 'ProfileBloc');
       emit(ProfileError(
         message: e.message,
         isRecoverable: true,
       ));
       
     } on ProfileCreateFailedException catch (e) {
-      print('🔴 ProfileBloc: ProfileCreateFailedException - ${e.message}');
+      AppLogger.error('ProfileCreateFailedException', error: e, tag: 'ProfileBloc');
       emit(ProfileError(
         message: e.message,
         isRecoverable: e.isRecoverable,
@@ -308,9 +309,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       ));
       
     } catch (e, stackTrace) {
-      print('🔴 ProfileBloc: Unexpected error during CREATE');
-      print('Error: $e');
-      print('Stack trace: $stackTrace');
+      AppLogger.error('Unexpected error during CREATE', error: e, stackTrace: stackTrace, tag: 'ProfileBloc');
       emit(ProfileError(
         message: 'Failed to create profile',
         isRecoverable: true,
