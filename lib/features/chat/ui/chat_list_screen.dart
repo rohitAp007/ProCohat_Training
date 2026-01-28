@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:supabase_flutter_app/features/profile/bloc/profile_bloc.dart';
+import 'package:supabase_flutter_app/features/profile/bloc/profile_state.dart';
+import 'package:supabase_flutter_app/features/profile/bloc/profile_event.dart';
 import 'package:supabase_flutter_app/features/profile/data/profile_model.dart';
 import 'package:supabase_flutter_app/features/chat/ui/chat_screen.dart';
 import 'package:supabase_flutter_app/features/chat/bloc/chat_bloc.dart';
@@ -40,7 +42,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
   }
   
   void _loadProfiles() {
-    context.read<ProfileBloc>().add(const ProfilesLoadAllRequested());
+    context.read<ProfileBloc>().add(ProfilesLoadAllRequested());
   }
   
   @override
@@ -126,11 +128,11 @@ class _ChatListScreenState extends State<ChatListScreen> {
         style: const TextStyle(color: Colors.white),
         decoration: InputDecoration(
           hintText: 'Search...',
-          hintStyle: TextStyle(color: Colors.white.withOpacity(0.7)),
-          prefixIcon: Icon(Icons.search, color: Colors.white.withOpacity(0.7)),
+          hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.7)),
+          prefixIcon: Icon(Icons.search, color: Colors.white.withValues(alpha: 0.7)),
           suffixIcon: _searchQuery.isNotEmpty
               ? IconButton(
-                  icon: Icon(Icons.clear, color: Colors.white.withOpacity(0.7)),
+                  icon: Icon(Icons.clear, color: Colors.white.withValues(alpha: 0.7)),
                   onPressed: () {
                     setState(() {
                       _searchController.clear();
@@ -140,7 +142,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
                 )
               : null,
           filled: true,
-          fillColor: Colors.white.withOpacity(0.2),
+          fillColor: Colors.white.withValues(alpha: 0.2),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(24),
             borderSide: BorderSide.none,
@@ -178,7 +180,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
               .where((profile) {
                 if (_searchQuery.isEmpty) return true;
                 return profile.fullName.toLowerCase().contains(_searchQuery) ||
-                       (profile.email?.toLowerCase().contains(_searchQuery) ?? false);
+                      profile.id.toLowerCase().contains(_searchQuery);
               })
               .toList();
           
@@ -378,14 +380,21 @@ class _ChatListScreenState extends State<ChatListScreen> {
   // =========================================================================
   
   void _openChat(Profile otherUser) {
+    final currentUserId = Supabase.instance.client.auth.currentUser?.id;
+    if (currentUserId == null) return;
+    
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => BlocProvider(
           create: (_) => ChatBloc(
             messageRepository: MessageRepository(),
             chatRepository: ChatRepository(),
+            currentUserId: currentUserId,
           ),
-          child: ChatScreen(otherUser: otherUser),
+          child: ChatScreen(
+            otherUserId: otherUser.id,
+            otherUserName: otherUser.fullName,
+          ),
         ),
       ),
     );

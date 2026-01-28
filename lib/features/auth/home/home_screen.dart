@@ -4,7 +4,7 @@ import '../data/auth_repository.dart';
 import '../login/ui/login_screen.dart';
 import 'package:supabase_flutter_app/features/profile/ui/profile_view_screen.dart';
 import 'package:supabase_flutter_app/features/profile/bloc/profile_bloc.dart';
-import 'package:supabase_flutter_app/features/profile/bloc/profile_event.dart';
+
 import 'package:supabase_flutter_app/features/profile/data/profile_repository.dart';
 
 /// Home screen displayed after successful authentication

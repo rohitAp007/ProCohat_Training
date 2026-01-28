@@ -60,7 +60,7 @@ class DateSeparator extends StatelessWidget {
           vertical: 6,
         ),
         decoration: BoxDecoration(
-          color: Colors.grey[700]!.withOpacity(0.85),
+          color: Colors.grey[700]!.withValues(alpha: 0.85),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Text(

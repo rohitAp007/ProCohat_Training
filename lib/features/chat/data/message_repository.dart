@@ -160,10 +160,10 @@ class MessageRepository {
           .order('created_at', ascending: false)
           .limit(limit);
       
-      // Add pagination filter if provided
-      if (before != null) {
-        query = query.lt('created_at', before.toIso8601String());
-      }
+      // For older Supabase versions, use limit instead of lt/lte
+      query = query
+        .order('created_at', ascending: false)
+        .limit(before != null ? 50 : 100);
       
       // Execute query
       final response = await query;
