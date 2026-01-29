@@ -37,10 +37,13 @@ class _LoginFormState extends State<LoginForm> {
   void _handleEmailLogin() {
     if (_formKey.currentState!.validate()) {
       context.read<LoginBloc>().add(
-            LoginRequested(
-              email: _emailController.text.trim(),
-              password: _passwordController.text,
-            ),
+            LoginEmailChanged(_emailController.text.trim()),
+          );
+      context.read<LoginBloc>().add(
+            LoginPasswordChanged(_passwordController.text),
+          );
+      context.read<LoginBloc>().add(
+            const LoginSubmitted(),
           );
     }
   }
@@ -82,7 +85,7 @@ class _LoginFormState extends State<LoginForm> {
   Widget build(BuildContext context) {
     return BlocBuilder<LoginBloc, LoginState>(
       builder: (context, state) {
-        final isLoading = state is LoginLoading || _isOAuthLoading;
+        final isLoading = state is LoginInProgress || _isOAuthLoading;
 
         return Padding(
           padding: const EdgeInsets.all(24.0),

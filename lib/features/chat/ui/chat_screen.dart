@@ -14,8 +14,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:supabase_flutter_app/features/chat/bloc/chat_bloc.dart';
 import 'package:supabase_flutter_app/features/chat/bloc/chat_event.dart';
 import 'package:supabase_flutter_app/features/chat/bloc/chat_state.dart';
-import 'package:supabase_flutter_app/features/chat/data/message_repository.dart';
-import 'package:supabase_flutter_app/features/chat/data/chat_repository.dart';
+
+
 import 'package:supabase_flutter_app/features/chat/data/chat_id_service.dart';
 import 'package:supabase_flutter_app/features/chat/ui/widgets/message_bubble.dart';
 import 'package:supabase_flutter_app/features/chat/ui/widgets/message_input.dart';
