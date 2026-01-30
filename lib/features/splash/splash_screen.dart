@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:supabase_flutter_app/core/auth/auth_state_manager.dart';
-import 'package:supabase_flutter_app/features/auth/login/ui/login_screen.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:supabase_flutter_app/features/onboarding/onboarding_screen.dart';
 import 'package:supabase_flutter_app/features/chat/ui/chat_list_screen.dart';
 import 'package:supabase_flutter_app/features/profile/bloc/profile_bloc.dart';
 import 'package:supabase_flutter_app/features/profile/bloc/profile_event.dart';
 import 'package:supabase_flutter_app/features/profile/data/profile_repository.dart';
+import 'package:supabase_flutter_app/features/auth/phone_auth/ui/phone_input_screen.dart';
+import 'package:supabase_flutter_app/features/auth/phone_auth/bloc/phone_auth_bloc.dart';
+import 'package:supabase_flutter_app/features/auth/phone_auth/data/phone_auth_repository.dart';
 import 'package:supabase_flutter_app/core/animations/fade_in_widget.dart';
 
 /// Splash screen with auth check
@@ -21,8 +23,6 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
-  final AuthStateManager _authStateManager = AuthStateManager();
-
   @override
   void initState() {
     super.initState();
@@ -45,11 +45,11 @@ class _SplashScreenState extends State<SplashScreen> {
       return;
     }
 
-    // STEP 2: Check authentication state
-    final isAuthenticated = _authStateManager.isAuthenticated;
+    // STEP 2: Check Supabase authentication state
+    final currentUser = Supabase.instance.client.auth.currentUser;
 
 // Navigate to appropriate screen with fade transition
-    if (isAuthenticated) {
+    if (currentUser != null) {
       // Logged in → ChatListScreen
       _navigateToScreen(
         BlocProvider(
@@ -60,8 +60,15 @@ class _SplashScreenState extends State<SplashScreen> {
         ),
       );
     } else {
-      // Not logged in → LoginScreen
-      _navigateToScreen(const LoginScreen());
+      // Not logged in → Phone Auth
+      _navigateToScreen(
+        BlocProvider(
+          create: (context) => PhoneAuthBloc(
+            repository: PhoneAuthRepository(),
+          ),
+          child: const PhoneInputScreen(),
+        ),
+      );
     }
   }
 
@@ -80,11 +87,7 @@ class _SplashScreenState extends State<SplashScreen> {
     );
   }
 
-  @override
-  void dispose() {
-    _authStateManager.dispose();
-    super.dispose();
-  }
+
 
   @override
   Widget build(BuildContext context) {
