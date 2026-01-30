@@ -327,20 +327,162 @@ class MessageRepository {
   }
   
   // =========================================================================
-  // REALTIME PREP (Day 20 implementation)
+  // REALTIME - MESSAGE STREAMING
   // =========================================================================
   
-  /// Subscribe to new messages in chat (placeholder for Day 20)
+  /// Stream messages in real-time
   /// 
-  /// **Will implement:**
-  /// - Realtime subscription
-  /// - Message stream
-  /// - Automatic updates
+  /// **Real-time Updates:**
+  /// - New messages appear instantly
+  /// - No manual refresh needed
+  /// - Works with Supabase Realtime
   /// 
-  /// **For now:** Returns null (implement on Day 20)
-  Stream<Message>? subscribeToChat(String chatId) {
-    // TODO: Implement on Day 20 (Realtime)
-    return null;
+  /// **Example:**
+  /// ```dart
+  /// repository.streamMessages(chatId).listen((messages) {
+  ///   // Update UI with new messages
+  ///   print('Received ${messages.length} messages');
+  /// });
+  /// ```
+  Stream<List<Message>> streamMessages(String chatId) {
+    return _supabase
+        .from(_tableName)
+        .stream(primaryKey: ['id'])
+        .order('created_at')
+        .eq('chat_id', chatId)
+        .map((data) {
+          return data
+              .map((json) => Message.fromJson(json))
+              .toList();
+        });
+  }
+
+  // =========================================================================
+  // TYPING INDICATORS
+  // =========================================================================
+
+  /// Update typing status
+  /// 
+  /// **Send when:**
+  /// - User starts typing: setTypingStatus(chatId, true)
+  /// - User stops typing: setTypingStatus(chatId, false)
+  /// - User sends message: setTypingStatus(chatId, false)
+  Future<void> setTypingStatus({
+    required String chatId,
+    required bool isTyping,
+  }) async {
+    try {
+      final currentUser = _supabase.auth.currentUser;
+      if (currentUser == null) return;
+
+      await _supabase.from('chat_typing').upsert({
+        'chat_id': chatId,
+        'user_id': currentUser.id,
+        'is_typing': isTyping,
+        'updated_at': DateTime.now().toIso8601String(),
+      });
+    } catch (e) {
+      print('Error updating typing status: $e');
+    }
+  }
+
+  /// Stream typing status for other user
+  /// 
+  /// **Usage:**
+  /// ```dart
+  /// repository.streamTypingStatus(chatId, otherUserId).listen((isTyping) {
+  ///   if (isTyping) {
+  ///     // Show "User is typing..."
+  ///   } else {
+  ///     // Hide typing indicator
+  ///   }
+  /// });
+  /// ```
+  Stream<bool> streamTypingStatus(String chatId, String otherUserId) {
+    return _supabase
+        .from('chat_typing')
+        .stream(primaryKey: ['chat_id', 'user_id'])
+        .map((data) {
+          if (data.isEmpty) return false;
+          // Filter for specific chat and user
+          final filtered = data.where((item) => 
+            item['chat_id'] == chatId && item['user_id'] == otherUserId
+          );
+          if (filtered.isEmpty) return false;
+          final typing = filtered.first['is_typing'];
+          return typing == true;
+        });
+  }
+
+  // =========================================================================
+  // READ RECEIPTS
+  // =========================================================================
+
+  /// Mark message as delivered
+  Future<void> markAsDelivered(String messageId) async {
+    try {
+      await _supabase.from(_tableName).update({
+        'delivered_at': DateTime.now().toIso8601String(),
+      }).eq('id', messageId);
+    } catch (e) {
+      print('Error marking as delivered: $e');
+    }
+  }
+
+  /// Mark message as read
+  /// 
+  /// **Auto-called when:**
+  /// - User views message on screen
+  /// - Chat screen is opened
+  Future<void> markAsRead(String messageId) async {
+    try {
+      await _supabase.from(_tableName).update({
+        'read_at': DateTime.now().toIso8601String(),
+      }).eq('id', messageId);
+    } catch (e) {
+      print('Error marking as read: $e');
+    }
+  }
+
+  /// Mark all messages in chat as read
+  /// 
+  /// **Called when:** User opens chat screen
+  Future<void> markAllAsRead(String chatId) async {
+    try {
+      final currentUser = _supabase.auth.currentUser;
+      if (currentUser == null) return;
+
+      await _supabase
+          .from(_tableName)
+          .update({
+            'read_at': DateTime.now().toIso8601String(),
+          })
+          .eq('chat_id', chatId)
+          .eq('receiver_id', currentUser.id)
+          .isFilter('read_at', null);
+    } catch (e) {
+      print('Error marking all as read: $e');
+    }
+  }
+
+  /// Get unread message count for a chat
+  Future<int> getUnreadCount(String chatId) async {
+    try {
+      final currentUser = _supabase.auth.currentUser;
+      if (currentUser == null) return 0;
+
+      final response = await _supabase
+          .from(_tableName)
+          .select('id')
+          .eq('chat_id', chatId)
+          .eq('receiver_id', currentUser.id)
+          .isFilter('read_at', null);
+
+      return (response as List).length;
+    } catch (e) {
+      print('Error getting unread count: $e');
+      return 0;
+    }
   }
 }
 

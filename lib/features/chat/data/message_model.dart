@@ -54,6 +54,12 @@ class Message extends Equatable {
   
   /// Server timestamp when message was last updated
   final DateTime updatedAt;
+
+  /// Timestamp when message was delivered (nullable)
+  final DateTime? deliveredAt;
+
+  /// Timestamp when message was read (nullable)
+  final DateTime? readAt;
   
   /// Constructor
   const Message({
@@ -65,6 +71,8 @@ class Message extends Equatable {
     this.mediaUrl,
     required this.createdAt,
     required this.updatedAt,
+    this.deliveredAt,
+    this.readAt,
   });
   
   // =========================================================================
@@ -100,6 +108,12 @@ class Message extends Equatable {
       mediaUrl: json['media_url'] as String?,
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
+      deliveredAt: json['delivered_at'] != null 
+          ? DateTime.parse(json['delivered_at'] as String) 
+          : null,
+      readAt: json['read_at'] != null 
+          ? DateTime.parse(json['read_at'] as String) 
+          : null,
     );
   }
   
@@ -122,6 +136,8 @@ class Message extends Equatable {
       'media_url': mediaUrl,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
+      'delivered_at': deliveredAt?.toIso8601String(),
+      'read_at': readAt?.toIso8601String(),
     };
   }
   
@@ -145,6 +161,18 @@ class Message extends Equatable {
   bool involvesUser(String userId) {
     return senderId == userId || receiverId == userId;
   }
+
+  /// Message status helpers
+  bool get isDelivered => deliveredAt != null;
+  bool get isRead => readAt != null;
+  bool get isPending => !isDelivered && !isRead;
+
+  /// Get message status text
+  String get statusText {
+    if (isRead) return 'Read';
+    if (isDelivered) return 'Delivered';
+    return 'Sent';
+  }
   
   // =========================================================================
   // EQUATABLE (for BLoC state comparison)
@@ -162,6 +190,8 @@ class Message extends Equatable {
         mediaUrl,
         createdAt,
         updatedAt,
+        deliveredAt,
+        readAt,
       ];
   
   // =========================================================================
@@ -191,6 +221,8 @@ class Message extends Equatable {
     String? mediaUrl,
     DateTime? createdAt,
     DateTime? updatedAt,
+    DateTime? deliveredAt,
+    DateTime? readAt,
   }) {
     return Message(
       id: id ?? this.id,
@@ -201,6 +233,8 @@ class Message extends Equatable {
       mediaUrl: mediaUrl ?? this.mediaUrl,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      deliveredAt: deliveredAt ?? this.deliveredAt,
+      readAt: readAt ?? this.readAt,
     );
   }
   
