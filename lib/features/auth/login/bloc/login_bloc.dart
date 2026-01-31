@@ -61,33 +61,41 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     LoginSubmitted event,
     Emitter<LoginState> emit,
   ) async {
+    print('📝 [LoginBloc] Received LoginSubmitted event');
+    print('📊 Current state: ${state.email} / password length: ${state.password.length}');
+    
     // Don't submit if form is invalid
     if (!state.isFormValid) {
+      print('❌ [LoginBloc] Form invalid: email=${state.isEmailValid}, pass=${state.isPasswordValid}');
       return;
     }
 
     // Emit loading state
+    print('🔄 [LoginBloc] Emitting LoginInProgress');
     emit(LoginInProgress(
       email: state.email,
       password: state.password,
       isEmailValid: state.isEmailValid,
-      isPasswordValid: state.isPasswordValid,
+      isPasswordValid:  state.isPasswordValid,
     ));
 
     try {
       // Call repository to sign in
+      print('🚀 [LoginBloc] Calling repository.signInWithEmail()');
       await _authRepository.signInWithEmail(
         email: state.email,
         password: state.password,
       );
 
       // Emit success state
+      print('✅ [LoginBloc] Login successful! Emitting LoginSuccess');
       emit(LoginSuccess(
         email: state.email,
         password: state.password,
       ));
     } on AppAuthException catch (e) {
       // Handle auth exceptions with user-friendly messages
+      print('❌ [LoginBloc] Auth error: ${e.message}');
       emit(LoginFailure(
         email: state.email,
         password: state.password,
@@ -97,6 +105,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
       ));
     } catch (e) {
       // Handle unexpected errors
+      print('❌ [LoginBloc] Unexpected error: $e');
       emit(LoginFailure(
         email: state.email,
         password: state.password,

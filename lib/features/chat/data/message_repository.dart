@@ -348,12 +348,15 @@ class MessageRepository {
     return _supabase
         .from(_tableName)
         .stream(primaryKey: ['id'])
-        .order('created_at')
-        .eq('chat_id', chatId)
         .map((data) {
-          return data
-              .map((json) => Message.fromJson(json))
-              .toList();
+          // Filter for this chat and sort by created_at
+          final filtered = data.where((item) => item['chat_id'] == chatId).toList();
+          filtered.sort((a, b) {
+            final aTime = DateTime.parse(a['created_at'] as String);
+            final bTime = DateTime.parse(b['created_at'] as String);
+            return aTime.compareTo(bTime);
+          });
+          return filtered.map((json) => Message.fromJson(json)).toList();
         });
   }
 

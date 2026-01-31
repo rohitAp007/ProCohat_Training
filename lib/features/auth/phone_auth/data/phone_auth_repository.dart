@@ -13,14 +13,30 @@ class PhoneAuthRepository {
   /// Send OTP to phone number
   /// 
   /// Supabase will send an SMS with verification code
+  /// In development, tries without country code for test numbers first
   Future<void> sendOTP({
     required String phoneNumber,
   }) async {
     try {
+      // Try sending OTP
       await _supabaseClient.auth.signInWithOtp(
         phone: phoneNumber,
       );
     } on AuthException catch (e) {
+      // If format is invalid and starts with +, try without country code
+      if (e.message.toLowerCase().contains('invalid') && phoneNumber.startsWith('+')) {
+        try {
+          // Extract just the numbers without country code
+          final withoutCountryCode = phoneNumber.substring(3); // Remove +91
+          await _supabaseClient.auth.signInWithOtp(
+            phone: withoutCountryCode,
+          );
+          return; // Success with retry
+        } catch (_) {
+          // If retry also fails, throw original error
+        }
+      }
+      
       if (e.message.toLowerCase().contains('invalid')) {
         throw InvalidPhoneNumberException();
       } else if (e.message.toLowerCase().contains('too many')) {
@@ -38,6 +54,7 @@ class PhoneAuthRepository {
   /// Verify OTP code
   /// 
   /// Returns Supabase User if successful
+  /// Handles both phone formats (with/without country code)
   Future<User> verifyOTP({
     required String phoneNumber,
     required String otpCode,
@@ -55,6 +72,24 @@ class PhoneAuthRepository {
 
       return response.user!;
     } on AuthException catch (e) {
+      // Try without country code if initial verification fails
+      if (e.message.toLowerCase().contains('invalid') && phoneNumber.startsWith('+')) {
+        try {
+          final withoutCountryCode = phoneNumber.substring(3);
+          final retryResponse = await _supabaseClient.auth.verifyOTP(
+            phone: withoutCountryCode,
+            token: otpCode,
+            type: OtpType.sms,
+          );
+          
+          if (retryResponse.user != null) {
+            return retryResponse.user!;
+          }
+        } catch (_) {
+          // Continue to original error handling
+        }
+      }
+      
       if (e.message.toLowerCase().contains('invalid') ||
           e.message.toLowerCase().contains('expired')) {
         throw InvalidVerificationCodeException();
