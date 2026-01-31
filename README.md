@@ -1,297 +1,382 @@
-# ProCohat Training - Flutter Supabase App
+# 💬 ProCohat - Real-Time Chat Application
 
-[![Flutter](https://img.shields.io/badge/Flutter-3.24.0-blue.svg)](https://flutter.dev/)
-[![Dart](https://img.shields.io/badge/Dart-3.5.0-blue.svg)](https://dart.dev/)
-[![Supabase](https://img.shields.io/badge/Supabase-2.0.0-green.svg)](https://supabase.com/)
-[![BLoC](https://img.shields.io/badge/BLoC-9.0.0-orange.svg)](https://bloclibrary.dev/)
+**A production-ready, enterprise-level chat application built with Flutter, Supabase, and BLoC architecture.**
 
-> A production-ready Flutter authentication app built with BLoC pattern and Supabase backend. Created as part of the ProCohat 30-day Flutter training program.
-
----
-
-## ✨ Features
-
-### Implemented (Days 1-7)
-- ✅ **Email/Password Authentication** - Full login/signup flow
-- ✅ **Password Reset** - Email-based password recovery
-- ✅ **Session Management** - Persistent login with `shared_preferences`
-- ✅ **Real-time Validation** - Instant email/password feedback
-- ✅ **Error Handling** - Type-safe exceptions with user-friendly messages
-- ✅ **Smooth Animations** - 60 FPS page transitions and micro-animations
-- ✅ **Professional UI** - Material 3 design with polished aesthetics
-- ✅ **Comprehensive Testing** - 21 unit tests (validators + BLoC)
-- ✅ **Clean Architecture** - 3-layer separation (UI, BLoC, Data)
-
-### Coming Soon (Days 8-30)
-- 🔜 Social Authentication (Google, Apple, GitHub)
-- 🔜 User Profiles & CRUD operations
-- 🔜 Real-time features with Supabase
-- 🔜 Offline support & local database
-- 🔜 Performance optimizations
-- 🔜 Production deployment
+[![Flutter](https://img.shields.io/badge/Flutter-3.32.2-blue.svg)](https://flutter.dev/)
+[![Dart](https://img.shields.io/badge/Dart-3.6.0-blue.svg)](https://dart.dev/)
+[![Supabase](https://img.shields.io/badge/Supabase-Backend-green.svg)](https://supabase.com/)
+[![BLoC](https://img.shields.io/badge/State%20Management-BLoC-orange.svg)](https://bloclibrary.dev/)
 
 ---
 
-## 🚀 Quick Start
+## 🚀 Features
 
-### Prerequisites
+### 🔐 **Multi-Provider Authentication**
+- ✅ **Email/Password** - Traditional authentication
+- ✅ **Phone Number + OTP** - SMS verification
+- ✅ **Google Sign-In** - One-click OAuth
+- ✅ Unified login screen with beautiful UI
+- ✅ Secure token-based sessions
 
-- **Flutter SDK**: 3.24.0 or higher ([Install](https://flutter.dev/docs/get-started/install))
-- **Dart SDK**: 3.5.0 or higher (comes with Flutter)
-- **Editor**: VS Code or Android Studio
-- **Supabase Account**: Free tier ([Sign up](https://supabase.com))
+### 💬 **Real-Time Messaging**
+- ✅ **Instant messaging** with Supabase Realtime
+- ✅ **Media support**: Images, videos, voice messages
+- ✅ **Message status**: Sent, delivered, read
+- ✅ **Typing indicators** (backend ready)
+- ✅ **Read receipts** (backend ready)
+- ✅ **Online/offline status** tracking
 
-### Installation
+### 📡 **Broadcasting Services**
+- ✅ **Presence tracking** - User online status
+- ✅ **Typing indicators** - Real-time typing status
+- ✅ **Read receipts** - Message read confirmation
+- ✅ **Live updates** - WebSocket subscriptions
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/your-username/supabase_flutter_app.git
-   cd supabase_flutter_app
-   ```
-
-2. **Install dependencies**
-   ```bash
-   flutter pub get
-   ```
-
-3. **Configure Supabase**
-   
-   Create a `lib/core/config/supabase_config.dart` file:
-   ```dart
-   class SupabaseConfig {
-     static const String supabaseUrl = 'YOUR_SUPABASE_URL';
-     static const String supabaseAnonKey = 'YOUR_SUPABASE_ANON_KEY';
-   }
-   ```
-   
-   Or use environment variables (recommended for production).
-
-4. **Run the app**
-   ```bash
-   flutter run
-   ```
-
----
-
-## 🧪 Testing
-
-### Run All Tests
-```bash
-flutter test
-```
-
-### Run Specific Test File
-```bash
-flutter test test/features/auth/login/bloc/login_bloc_test.dart
-```
-
-### Run with Coverage
-```bash
-flutter test --coverage
-genhtml coverage/lcov.info -o coverage/html
-open coverage/html/index.html
-```
-
-### Current Test Coverage
-- **Total Tests**: 21 passing
-- **Validators**: 13 tests
-- **LoginBloc**: 8 tests
-- **Coverage**: ~80% for core features
-
----
-
-## 📁 Project Structure
-
-```
-lib/
-├── core/                  # Shared utilities
-│   ├── animations/        # Reusable animations
-│   ├── auth/              # Auth state management
-│   ├── constants/         # App constants
-│   ├── error/             # Error handling
-│   ├── storage/           # Local storage
-│   ├── theme/             # App theming
-│   ├── utils/             # Utilities
-│   └── widgets/           # Reusable widgets
-├── features/              # Feature modules
-│   ├── auth/              # Authentication
-│   │   ├── data/          # Repository & exceptions
-│   │   ├── login/         # Login feature
-│   │   ├── signup/        # Signup feature
-│   │   ├── password_reset/# Password reset
-│   │   └── home/          # Home screen
-│   └── splash/            # Splash screen
-├── app.dart               # App widget
-└── main.dart              # Entry point
-
-test/                      # Tests mirror lib/ structure
-docs/                      # Documentation
-```
-
-See [Architecture Documentation](docs/architecture.md) for detailed explanation.
+### 🎨 **Beautiful UI**
+- ✅ WhatsApp-inspired design
+- ✅ Material Design components
+- ✅ Smooth animations
+- ✅ Responsive layouts
+- ✅ Dark mode support
 
 ---
 
 ## 🏗️ Architecture
 
-### BLoC Pattern
-
+### **BLoC Pattern (Business Logic Component)**
 ```
-User Action → Event → BLoC → State → UI Update
-```
-
-**Benefits:**
-- Separation of concerns
-- Testable business logic
-- Predictable state management
-- Excellent developer tools
-
-### Clean Architecture
-
-```
-Presentation (UI)
-    ↓
-BLoC (Business Logic)
-    ↓
-Data (Repository)
+User Input → Event → BLoC → State → UI Update
 ```
 
-**Why?**
-- Independent layers
-- Easy to test
-- Maintainable
-- Scalable
+**Implemented BLoCs:**
+- `LoginBloc` - Email/password authentication
+- `PhoneAuthBloc` - Phone OTP verification
+- `MessageBloc` - Chat message handling
+- `ProfileBloc` - User profile management
+- `PresenceBloc` - Online status tracking
 
-Read the full [Architecture Guide](docs/architecture.md).
+### **Project Structure**
+```
+lib/
+├── core/                   # Shared utilities & services
+│   ├── animations/        # Custom animations
+│   ├── storage/           # Session management
+│   └── theme/             # App theming
+├── features/              # Feature modules
+│   ├── auth/             # Authentication (Email, Phone, Google)
+│   │   ├── login/        # Email/password login
+│   │   ├── phone_auth/   # Phone OTP
+│   │   ├── signup/       # Registration
+│   │   ├── services/     # OAuth services
+│   │   └── unified_login/# Unified auth screen
+│   ├── chat/             # Messaging
+│   │   ├── data/         # Repository & models
+│   │   ├── bloc/         # Chat BLoC
+│   │   └── ui/           # Chat screens
+│   ├── profile/          # User profiles
+│   └── presence/         # Real-time presence
+└── main.dart             # App entry point
+```
 
 ---
 
-## 🎨 Key Technologies
+## 🛠️ Tech Stack
 
-### State Management
-- **flutter_bloc** - BLoC pattern implementation
-- **equatable** - Value equality for states
+### **Frontend**
+- **Flutter** - Cross-platform framework
+- **Dart** - Programming language
+- **BLoC/Cubit** - State management
+- **Material Design** - UI components
 
-### Backend
-- **supabase_flutter** - Supabase client
-- **PostgreSQL** - Database (via Supabase)
+### **Backend**
+- **Supabase** - Backend-as-a-Service
+  - PostgreSQL database
+  - Real-time subscriptions
+  - Authentication
+  - File storage
+  - Row Level Security (RLS)
 
-### Testing
-- **bloc_test** - BLoC testing utilities
-- **mocktail** - Mocking framework
-
-### UI/UX
-- **Material 3** - Google's design system
-- Custom animations & transitions
+### **Key Packages**
+```yaml
+dependencies:
+  flutter_bloc: ^8.1.6          # State management
+  supabase_flutter: ^2.9.2      # Backend integration
+  google_sign_in: ^6.2.2        # Google OAuth
+  country_code_picker: ^3.0.0   # Phone input
+  image_picker: ^1.0.7          # Media selection
+  video_player: ^2.8.2          # Video playback
+  just_audio: ^0.9.36           # Audio playback
+  record: ^6.1.2                # Voice recording
+  cached_network_image: ^3.3.1 # Image caching
+```
 
 ---
 
-## 📖 Documentation
+## 📱 Screenshots
 
-- [Architecture Documentation](docs/architecture.md) - System design & patterns
-- [Error Codes Reference](docs/error_codes.md) - Complete error code guide
-- [API Documentation](docs/api.md) - Backend API reference *(coming soon)*
-- [Contributing Guide](CONTRIBUTING.md) - How to contribute *(coming soon)*
+### Authentication Screens
+| Email Login | Phone OTP | Google Sign-In |
+|------------|-----------|----------------|
+| ![Email](docs/screenshots/email.png) | ![Phone](docs/screenshots/phone.png) | ![Google](docs/screenshots/google.png) |
+
+### Chat Interface
+| Chat List | Conversation | Media |
+|-----------|--------------|-------|
+| ![List](docs/screenshots/list.png) | ![Chat](docs/screenshots/chat.png) | ![Media](docs/screenshots/media.png) |
 
 ---
 
-## 🧑‍💻 Development
+## 🔥 Getting Started
 
-### Code Style
+### Prerequisites
+- Flutter SDK >= 3.32.2
+- Dart SDK >= 3.6.0
+- Android Studio / VS Code
+- Supabase account
 
-We follow the [Effective Dart](https://dart.dev/guides/language/effective-dart) style guide.
+### Installation
 
-**Key principles:**
-- Clear, descriptive names
-- Single responsibility
-- DRY (Don't Repeat Yourself)
-- Comprehensive documentation
-
-### Git Workflow
-
+1. **Clone the repository**
 ```bash
-# Create feature branch
-git checkout -b feature/your-feature
-
-# Make changes and commit
-git commit -m "feat: add new feature"
-
-# Push to remote
-git push origin feature/your-feature
+git clone https://github.com/rohitAp007/ProCohat_Training.git
+cd supabase_flutter_app
 ```
 
-**Commit Convention:**  
-- `feat:` New feature
-- `fix:` Bug fix
-- `docs:` Documentation
-- `test:` Tests
-- `refactor:` Code refactoring
+2. **Install dependencies**
+```bash
+flutter pub get
+```
+
+3. **Configure Supabase**
+
+Create `.env` file:
+```env
+SUPABASE_URL=your_supabase_url
+SUPABASE_ANON_KEY=your_anon_key
+```
+
+Or update `lib/core/config/supabase_config.dart`:
+```dart
+static const String supabaseUrl = 'YOUR_SUPABASE_URL';
+static const String supabaseAnonKey = 'YOUR_ANON_KEY';
+```
+
+4. **Run the app**
+```bash
+flutter run
+```
+
+---
+
+## 🔧 Configuration
+
+### Authentication Setup
+
+#### **Email/Password**
+- Enabled by default in Supabase
+- Configure email templates in Supabase Dashboard
+
+#### **Phone OTP**
+1. Enable Phone provider in Supabase
+2. Add test phone numbers for development:
+   - Phone: `7666086414`
+   - OTP: `4685`
+
+#### **Google Sign-In**
+1. Get OAuth credentials from [Google Cloud Console](https://console.cloud.google.com/)
+2. Enable Google provider in Supabase
+3. Update `oauth_service.dart` with Web Client ID
+
+### Database Schema
+```sql
+-- Apply schema in Supabase SQL Editor
+-- See: docs/database/schema.sql
+
+-- Main tables
+CREATE TABLE user_profiles (...)
+CREATE TABLE conversations (...)
+CREATE TABLE messages (...)
+CREATE TABLE message_statuses (...)
+CREATE TABLE typing_indicators (...)
+CREATE TABLE user_presence (...)
+```
+
+---
+
+## 📚 Learning Journey - 31 Days
+
+### **What I Learned**
+
+#### **BLoC Architecture** 🏗️
+- Event-driven state management
+- Separation of business logic from UI
+- Testable, maintainable code structure
+- Reactive programming with Streams
+
+#### **Real-Time Systems** 📡
+- WebSocket connections
+- Supabase Realtime subscriptions
+- Presence tracking
+- Live data synchronization
+
+#### **Authentication** 🔐
+- Multi-provider OAuth integration
+- Token-based sessions
+- Secure password handling
+- Phone number validation
+
+#### **Flutter Development** 📱
+- Complex widget composition
+- Navigation & routing
+- State management patterns
+- Async programming (Future, Stream)
+
+#### **Database Design** 💾
+- Normalized schema design
+- Row Level Security (RLS)
+- Real-time triggers
+- Efficient queries
+
+### **Skills Acquired**
+✅ Production-ready app development  
+✅ Clean architecture implementation  
+✅ Real-time feature integration  
+✅ Multi-platform authentication  
+✅ Problem-solving & debugging  
+✅ Code organization & best practices  
+
+---
+
+## 📊 Project Stats
+
+| Metric | Count |
+|--------|-------|
+| Features | 15+ |
+| BLoCs | 5+ |
+| Screens | 10+ |
+| Custom Widgets | 30+ |
+| Lines of Code | 5,000+ |
+| Training Days | 31 |
+| Bugs Fixed | 20+ |
+
+---
+
+## 🚀 Deployment
+
+### Android APK
+```bash
+flutter build apk --release
+```
+
+### iOS App
+```bash
+flutter build ios --release
+```
+
+---
+
+## 🧪 Testing
+
+### Run Tests
+```bash
+flutter test
+```
+
+### Test Coverage
+```bash
+flutter test --coverage
+```
+
+### Manual Testing
+- Email login: Use any valid Supabase account
+- Phone OTP: `7666086414` → OTP: `4685`
+- Google: Requires OAuth configuration
 
 ---
 
 ## 🤝 Contributing
 
-This is a training project, but contributions and suggestions are welcome!
+This is a training project, but suggestions are welcome!
 
 1. Fork the repository
-2. Create your feature branch
-3. Commit your changes
-4. Push to the branch
-5. Open a Pull Request
+2. Create feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit changes (`git commit -m 'Add AmazingFeature'`)
+4. Push to branch (`git push origin feature/AmazingFeature`)
+5. Open Pull Request
 
 ---
 
-## 📝 License
+## 📄 License
 
-This project is created for educational purposes as part of ProCohat training program.
+This project is for educational purposes.
+
+---
+
+## 👨‍💻 Author
+
+**Rohit**  
+Training Project - ProCohat Company  
+Duration: January 1-31, 2026 (31 Days)
+
+### Contact
+- GitHub: [@rohitAp007](https://github.com/rohitAp007)
+- Project: [ProCohat Training](https://github.com/rohitAp007/ProCohat_Training)
 
 ---
 
 ## 🙏 Acknowledgments
 
-- **ProCohat Team** - Training program & guidance
-- **Flutter Team** - Excellent framework
-- **BLoC Library** - State management solution
-- **Supabase** - Backend-as-a-Service platform
+- **Flutter Team** - Amazing framework
+- **Supabase** - Powerful backend platform
+- **BLoC Library** - Clean state management
+- **ProCohat Company** - Training opportunity
+- **Open Source Community** - Invaluable resources
 
 ---
 
-## 📧 Contact
+## 📝 Documentation
 
-**Developer**: Your Name  
-**Email**: your.email@example.com  
-**LinkedIn**: [Your LinkedIn](https://linkedin.com/in/yourprofile)  
-**GitHub**: [@yourusername](https://github.com/yourusername)
-
----
-
-## 📊 Training Progress
-
-**Current Status**: Day 7 of 30
-
-| Week | Focus | Status |
-|------|-------|--------|
-| Week 1 | Auth Foundation | ✅ Complete |
-| Week 2 | CRUD Operations | 🔜 Upcoming |
-| Week 3 | Real-time Features | 🔜 Upcoming |
-| Week 4 | Polish & Deploy | 🔜 Upcoming |
+- [`TRAINING_SUMMARY.md`](TRAINING_SUMMARY.md) - Complete 31-day training journey
+- [`docs/architecture.md`](docs/architecture.md) - Detailed architecture
+- [`docs/database/`](docs/database/) - Database schema & migrations
+- [`docs/api/`](docs/api/) - API documentation
 
 ---
 
-## 🎯 Learning Outcomes
+## 🔮 Future Enhancements
 
-Through this project, you'll master:
-- ✅ BLoC state management pattern
-- ✅ Clean architecture principles
-- ✅ Repository pattern
-- ✅ Comprehensive testing (unit, widget, integration)
-- ✅ Supabase integration
-- ✅ Professional error handling
-- ✅ Modern UI/UX design
-- ✅ Git workflow & best practices
+- [ ] Voice/Video calls
+- [ ] Group chat
+- [ ] End-to-end encryption
+- [ ] Push notifications
+- [ ] Message search
+- [ ] Stories feature
+- [ ] AI chatbot integration
+- [ ] Multi-device sync
 
 ---
 
-**Happy Coding!** 🚀
+## ⭐ Features Implemented (Day 31)
 
-*Built with ❤️ using Flutter*
+### ✅ Completed
+- Multi-provider authentication (Email, Phone, Google)
+- Real-time messaging
+- Media attachments (images, videos, audio)
+- Typing indicators (backend)
+- Read receipts (backend)
+- Online status tracking
+- BLoC architecture
+- Clean code structure
+
+### ⏳ In Progress
+- UI integration for typing indicators
+- UI for read receipts
+- Message search
+
+---
+
+**Built with ❤️ during 31 days of intensive Flutter training**
+
+**Status**: Production-Ready 🚀  
+**Version**: 1.0.0  
+**Last Updated**: January 31, 2026
