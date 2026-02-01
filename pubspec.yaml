@@ -38,7 +38,7 @@ dependencies:
   image: ^4.1.7
   
   # Audio
-  record: ^5.0.4
+  record: ^6.1.2
   just_audio: ^0.9.36
   
   # Contacts & Permissions

@@ -73,7 +73,7 @@ class _PhoneInputScreenState extends State<PhoneInputScreen> {
                   
                   // Info text
                   const Text(
-                    'ProCohat will send an SMS message to verify your phone number.',
+                    'Enter your phone number without country code.\nExample: 9876543210',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 14,
@@ -117,7 +117,7 @@ class _PhoneInputScreenState extends State<PhoneInputScreen> {
                             controller: _phoneController,
                             keyboardType: TextInputType.phone,
                             decoration: const InputDecoration(
-                              hintText: 'Phone number',
+                              hintText: '9876543210',
                               border: InputBorder.none,
                               contentPadding: EdgeInsets.symmetric(horizontal: 16),
                             ),
@@ -184,7 +184,8 @@ class _PhoneInputScreenState extends State<PhoneInputScreen> {
   }
 
   void _sendOTP() {
-    final phoneNumber = _phoneController.text.trim();
+    // Remove all non-digit characters
+    final phoneNumber = _phoneController.text.trim().replaceAll(RegExp(r'[^0-9]'), '');
 
     if (phoneNumber.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -193,14 +194,19 @@ class _PhoneInputScreenState extends State<PhoneInputScreen> {
       return;
     }
 
-    if (phoneNumber.length < 10) {
+    // Validate phone number length (should be 10 digits for most countries)
+    if (phoneNumber.length < 10 || phoneNumber.length > 15) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a valid phone number')),
+        const SnackBar(content: Text('Please enter a valid phone number (10-15 digits)')),
       );
       return;
     }
 
-    // Send OTP
+    // Debug: Show formatted number
+    final formattedNumber = '$_countryCode$phoneNumber';
+    print('Sending OTP to: $formattedNumber');
+
+    // Send OTP with properly formatted number
     context.read<PhoneAuthBloc>().add(
           PhoneOTPSendRequested(
             phoneNumber: phoneNumber,

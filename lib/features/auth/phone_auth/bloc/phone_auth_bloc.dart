@@ -23,23 +23,30 @@ class PhoneAuthBloc extends Bloc<PhoneAuthEvent, PhoneAuthState> {
     PhoneOTPSendRequested event,
     Emitter<PhoneAuthState> emit,
   ) async {
+    print('📝 [PhoneAuthBloc] Received PhoneOTPSendRequested');
+    print('📱 Phone: ${event.fullPhoneNumber}');
+    
     emit(const PhoneAuthSendingOTP());
 
     _phoneNumber = event.fullPhoneNumber;
 
     try {
+      print('🚀 [PhoneAuthBloc] Calling repository.sendOTP()');
       await repository.sendOTP(phoneNumber: event.fullPhoneNumber);
       
+      print('✅ [PhoneAuthBloc] OTP sent successfully!');
       emit(PhoneAuthOTPSent(
         verificationId: event.fullPhoneNumber, // Supabase doesn't use verification ID
         phoneNumber: event.fullPhoneNumber,
       ));
     } on PhoneAuthException catch (e) {
+      print('❌ [PhoneAuthBloc] PhoneAuthException: ${e.message}');
       emit(PhoneAuthError(
         message: e.message,
         isRecoverable: true,
       ));
     } catch (e) {
+      print('❌ [PhoneAuthBloc] Unexpected error: $e');
       emit(PhoneAuthError(
         message: 'Failed to send OTP: ${e.toString()}',
         isRecoverable: true,
