@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter_app/core/auth/auth_state_manager.dart';
-import 'package:supabase_flutter_app/features/auth/login/ui/login_screen.dart';
+import 'package:supabase_flutter_app/features/auth/unified_login/ui/unified_login_screen_clean.dart';
 import 'package:supabase_flutter_app/features/auth/home/home_screen.dart';
 
 /// Auth Wrapper - Automatically routes based on authentication state
@@ -56,8 +56,8 @@ class _AuthWrapperState extends State<AuthWrapper> {
           return const HomeScreen();
         }
 
-        // User is not logged in - show login screen
-        return const LoginScreen();
+        // User is not logged in - show unified login screen
+        return const UnifiedLoginScreen();
       },
     );
   }

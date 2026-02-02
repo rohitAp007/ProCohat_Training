@@ -7,6 +7,7 @@
 /// PATTERN: Same as ProfileBloc (you built this!)
 ///
 /// ============================================================================
+library;
 
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -16,6 +17,7 @@ import 'package:supabase_flutter_app/features/chat/data/message_model.dart';
 import 'package:supabase_flutter_app/features/chat/data/message_repository.dart';
 import 'package:supabase_flutter_app/features/chat/data/chat_repository.dart';
 import 'package:supabase_flutter_app/features/chat/data/chat_exceptions.dart';
+import 'package:supabase_flutter_app/core/utils/app_logger.dart';
 import 'chat_event.dart';
 import 'chat_state.dart';
 
@@ -433,18 +435,18 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
                     add(ChatMessageReceived(message: message));
                   }
                 } catch (e) {
-                  print('Error parsing realtime message: $e');
+                  AppLogger.error('Error parsing realtime message', error: e, tag: 'CHAT');
                 }
               }
             },
             onError: (error) {
               // Handle subscription errors
-              print('Realtime subscription error: $error');
+              AppLogger.error('Realtime subscription error', error: error, tag: 'CHAT');
             },
           );
           
     } catch (e) {
-      print('Failed to subscribe to realtime: $e');
+      AppLogger.error('Failed to subscribe to realtime', error: e, tag: 'CHAT');
     }
   }
   

@@ -12,7 +12,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'models/onboarding_page_data.dart';
 import 'widgets/onboarding_page.dart';
 import 'widgets/onboarding_indicator.dart';
-import 'package:supabase_flutter_app/features/auth/login/ui/login_screen.dart';
+import 'package:supabase_flutter_app/features/auth/unified_login/ui/unified_login_screen_clean.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -61,7 +61,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(
-        builder: (context) => const LoginScreen(),
+        builder: (context) => const UnifiedLoginScreen(),
       ),
     );
   }
