@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supabase_flutter_app/features/auth/login/bloc/login_bloc.dart';
 import 'package:supabase_flutter_app/features/auth/login/bloc/login_event.dart';
@@ -78,40 +78,40 @@ class _UnifiedLoginContentState extends State<_UnifiedLoginContent> {
   }
 
 void _handleEmailLogin() {
-    print('🔐 [DEBUG] Email login button clicked');
+    print('ðŸ” [DEBUG] Email login button clicked');
     final email = _emailController.text.trim();
     final password = _passwordController.text;
-    print('📧 Email: $email');
-    print('🔑 Password length: ${password.length}');
+    print('ðŸ“§ Email: $email');
+    print('ðŸ”‘ Password length: ${password.length}');
 
     if (email.isEmpty || password.isEmpty) {
-      print('❌ Validation failed: Empty fields');
+      print('âŒ Validation failed: Empty fields');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please enter email and password')),
       );
       return;
     }
 
-    // ✅ NOW THIS WORKS! Context is below MultiBlocProvider
-    print('✅ Dispatching LoginEmailChanged event');
+    // âœ… NOW THIS WORKS! Context is below MultiBlocProvider
+    print('âœ… Dispatching LoginEmailChanged event');
     context.read<LoginBloc>().add(LoginEmailChanged(email));
-    print('✅ Dispatching LoginPasswordChanged event');
+    print('âœ… Dispatching LoginPasswordChanged event');
     context.read<LoginBloc>().add(LoginPasswordChanged(password));
     
     // Submit login
-    print('✅ Dispatching LoginSubmitted event');
+    print('âœ… Dispatching LoginSubmitted event');
     context.read<LoginBloc>().add(const LoginSubmitted());
-    print('🔄 Waiting for BLoC response...');
+    print('ðŸ”„ Waiting for BLoC response...');
   }
 
   void _handlePhoneLogin() {
-    print('📱 [DEBUG] Send OTP button clicked');
+    print('ðŸ“± [DEBUG] Send OTP button clicked');
     final phoneNumber = _phoneController.text.trim().replaceAll(RegExp(r'[^0-9]'), '');
-    print('📞 Phone number (cleaned): $phoneNumber');
-    print('🌍 Country code: $_countryCode');
+    print('ðŸ“ž Phone number (cleaned): $phoneNumber');
+    print('ðŸŒ Country code: $_countryCode');
 
     if (phoneNumber.isEmpty) {
-      print('❌ Validation failed: Empty phone number');
+      print('âŒ Validation failed: Empty phone number');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please enter your phone number')),
       );
@@ -119,42 +119,42 @@ void _handleEmailLogin() {
     }
 
     if (phoneNumber.length < 10 || phoneNumber.length > 15) {
-      print('❌ Validation failed: Invalid length (${phoneNumber.length})');
+      print('âŒ Validation failed: Invalid length (${phoneNumber.length})');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please enter a valid phone number')),
       );
       return;
     }
 
-   print('✅ Validation passed! Dispatching PhoneOTPSendRequested');
-    print('📲 Sending OTP to: $_countryCode$phoneNumber');
+   print('âœ… Validation passed! Dispatching PhoneOTPSendRequested');
+    print('ðŸ“² Sending OTP to: $_countryCode$phoneNumber');
     
-    // ✅ NOW THIS WORKS! Context is below MultiBlocProvider
+    // âœ… NOW THIS WORKS! Context is below MultiBlocProvider
     context.read<PhoneAuthBloc>().add(
           PhoneOTPSendRequested(
             phoneNumber: phoneNumber,
             countryCode: _countryCode,
           ),
         );
-    print('🔄 Waiting for phone auth BLoC response...');
+    print('ðŸ”„ Waiting for phone auth BLoC response...');
   }
 
   Future<void> _handleGoogleSignIn() async {
-    print('🔍 [DEBUG] Google Sign-In button clicked');
+    print('ðŸ” [DEBUG] Google Sign-In button clicked');
     setState(() => _isGoogleLoading = true);
     
     try {
-      print('📲 Calling OAuthService.signInWithGoogle()');
-      print('⏳ Waiting for Google account picker...');
+      print('ðŸ“² Calling OAuthService.signInWithGoogle()');
+      print('â³ Waiting for Google account picker...');
       await _oauthService.signInWithGoogle();
-      print('✅ Google Sign-In successful!');
+      print('âœ… Google Sign-In successful!');
       
       if (!mounted) {
-        print('⚠️ Widget unmounted, aborting navigation');
+        print('âš ï¸ Widget unmounted, aborting navigation');
         return;
       }
       
-      print('🚀 Navigating to ChatListScreen...');
+      print('ðŸš€ Navigating to ChatListScreen...');
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
           builder: (context) => BlocProvider(
@@ -166,8 +166,8 @@ void _handleEmailLogin() {
         ),
       );
     } catch (e, stackTrace) {
-      print('❌ Google Sign-In ERROR: $e');
-      print('📍 Stack trace: $stackTrace');
+      print('âŒ Google Sign-In ERROR: $e');
+      print('ðŸ“ Stack trace: $stackTrace');
       
       if (!mounted) return;
       
@@ -180,7 +180,7 @@ void _handleEmailLogin() {
       );
     } finally {
       if (mounted) {
-        print('🔄 Resetting loading state');
+        print('ðŸ”„ Resetting loading state');
         setState(() => _isGoogleLoading = false);
       }
     }
@@ -188,7 +188,7 @@ void _handleEmailLogin() {
 
   @override
   Widget build(BuildContext context) {
-    // ✅ This context is NOW a child of MultiBlocProvider!
+    // âœ… This context is NOW a child of MultiBlocProvider!
     return MultiBlocListener(
         listeners: [
           // Email Login Listener
@@ -406,7 +406,7 @@ void _handleEmailLogin() {
             ),
           ),
         ],
-      ),
+      )
     );
   }
 
