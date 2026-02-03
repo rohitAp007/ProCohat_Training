@@ -18,12 +18,12 @@ import 'package:supabase_flutter_app/features/profile/data/profile_repository.da
 import 'package:country_code_picker/country_code_picker.dart';
 
 /// Unified Login Screen
-/// 
+///
 /// Provides three authentication methods:
 /// 1. Email/Password
 /// 2. Phone Number + OTP
 /// 3. Google Sign-In
-/// 
+///
 /// This is a WRAPPER that provides BLoCs to child widgets
 class UnifiedLoginScreen extends StatelessWidget {
   const UnifiedLoginScreen({super.key});
@@ -34,14 +34,10 @@ class UnifiedLoginScreen extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider(
-          create: (context) => LoginBloc(
-            authRepository: AuthRepository(),
-          ),
+          create: (context) => LoginBloc(authRepository: AuthRepository()),
         ),
         BlocProvider(
-          create: (context) => PhoneAuthBloc(
-            repository: PhoneAuthRepository(),
-          ),
+          create: (context) => PhoneAuthBloc(repository: PhoneAuthRepository()),
         ),
       ],
       // Actual UI is in separate widget below
@@ -77,7 +73,7 @@ class _UnifiedLoginContentState extends State<_UnifiedLoginContent> {
     super.dispose();
   }
 
-void _handleEmailLogin() {
+  void _handleEmailLogin() {
     print('ðŸ” [DEBUG] Email login button clicked');
     final email = _emailController.text.trim();
     final password = _passwordController.text;
@@ -97,7 +93,7 @@ void _handleEmailLogin() {
     context.read<LoginBloc>().add(LoginEmailChanged(email));
     print('âœ… Dispatching LoginPasswordChanged event');
     context.read<LoginBloc>().add(LoginPasswordChanged(password));
-    
+
     // Submit login
     print('âœ… Dispatching LoginSubmitted event');
     context.read<LoginBloc>().add(const LoginSubmitted());
@@ -106,7 +102,10 @@ void _handleEmailLogin() {
 
   void _handlePhoneLogin() {
     print('ðŸ“± [DEBUG] Send OTP button clicked');
-    final phoneNumber = _phoneController.text.trim().replaceAll(RegExp(r'[^0-9]'), '');
+    final phoneNumber = _phoneController.text.trim().replaceAll(
+      RegExp(r'[^0-9]'),
+      '',
+    );
     print('ðŸ“ž Phone number (cleaned): $phoneNumber');
     print('ðŸŒ Country code: $_countryCode');
 
@@ -126,41 +125,41 @@ void _handleEmailLogin() {
       return;
     }
 
-   print('âœ… Validation passed! Dispatching PhoneOTPSendRequested');
+    print('âœ… Validation passed! Dispatching PhoneOTPSendRequested');
     print('ðŸ“² Sending OTP to: $_countryCode$phoneNumber');
-    
+
     // âœ… NOW THIS WORKS! Context is below MultiBlocProvider
     context.read<PhoneAuthBloc>().add(
-          PhoneOTPSendRequested(
-            phoneNumber: phoneNumber,
-            countryCode: _countryCode,
-          ),
-        );
+      PhoneOTPSendRequested(
+        phoneNumber: phoneNumber,
+        countryCode: _countryCode,
+      ),
+    );
     print('ðŸ”„ Waiting for phone auth BLoC response...');
   }
 
   Future<void> _handleGoogleSignIn() async {
     print('ðŸ” [DEBUG] Google Sign-In button clicked');
     setState(() => _isGoogleLoading = true);
-    
+
     try {
       print('ðŸ“² Calling OAuthService.signInWithGoogle()');
       print('â³ Waiting for Google account picker...');
       await _oauthService.signInWithGoogle();
       print('âœ… Google Sign-In successful!');
-      
+
       if (!mounted) {
         print('âš ï¸ Widget unmounted, aborting navigation');
         return;
       }
-      
+
       print('ðŸš€ Navigating to ChatListScreen...');
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
           builder: (context) => BlocProvider(
-            create: (context) => ProfileBloc(
-              repository: ProfileRepository(),
-            )..add(const ProfilesLoadAllRequested()),
+            create: (context) =>
+                ProfileBloc(repository: ProfileRepository())
+                  ..add(const ProfilesLoadAllRequested()),
             child: const ChatListScreen(),
           ),
         ),
@@ -168,9 +167,9 @@ void _handleEmailLogin() {
     } catch (e, stackTrace) {
       print('âŒ Google Sign-In ERROR: $e');
       print('ðŸ“ Stack trace: $stackTrace');
-      
+
       if (!mounted) return;
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Google Sign-In failed: ${e.toString()}'),
@@ -190,145 +189,139 @@ void _handleEmailLogin() {
   Widget build(BuildContext context) {
     // âœ… This context is NOW a child of MultiBlocProvider!
     return MultiBlocListener(
-        listeners: [
-          // Email Login Listener
-          BlocListener<LoginBloc, LoginState>(
-            listener: (context, state) {
-              if (state is LoginSuccess) {
-                Navigator.of(context).pushReplacement(
-                  MaterialPageRoute(
-                    builder: (context) => BlocProvider(
-                      create: (context) => ProfileBloc(
-                        repository: ProfileRepository(),
-                      )..add(const ProfilesLoadAllRequested()),
-                      child: const ChatListScreen(),
+      listeners: [
+        // Email Login Listener
+        BlocListener<LoginBloc, LoginState>(
+          listener: (context, state) {
+            if (state is LoginSuccess) {
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(
+                  builder: (context) => BlocProvider(
+                    create: (context) =>
+                        ProfileBloc(repository: ProfileRepository())
+                          ..add(const ProfilesLoadAllRequested()),
+                    child: const ChatListScreen(),
+                  ),
+                ),
+              );
+            } else if (state is LoginFailure) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(state.errorMessage ?? 'Login failed')),
+              );
+            }
+          },
+        ),
+        // Phone Auth Listener
+        BlocListener<PhoneAuthBloc, PhoneAuthState>(
+          listener: (context, state) {
+            if (state is PhoneAuthOTPSent) {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => BlocProvider.value(
+                    value: context.read<PhoneAuthBloc>(),
+                    child: PhoneOTPScreen(
+                      phoneNumber:
+                          '$_countryCode${_phoneController.text.trim()}',
+                      verificationId: '', // Not needed for Supabase
                     ),
                   ),
-                );
-              } else if (state is LoginFailure) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(state.errorMessage ?? 'Login failed')),
-                );
-              }
-            },
-          ),
-          // Phone Auth Listener
-          BlocListener<PhoneAuthBloc, PhoneAuthState>(
-            listener: (context, state) {
-              if (state is PhoneAuthOTPSent) {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => BlocProvider.value(
-                      value: context.read<PhoneAuthBloc>(),
-                      child: PhoneOTPScreen(
-                        phoneNumber: '$_countryCode${_phoneController.text.trim()}',
-                        verificationId: '', // Not needed for Supabase
-                      ),
-                    ),
+                ),
+              );
+            } else if (state is PhoneAuthError) {
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(SnackBar(content: Text(state.message)));
+            }
+          },
+        ),
+      ],
+      child: Scaffold(
+        body: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Logo
+                  Icon(
+                    Icons.chat_bubble_outline,
+                    size: 80,
+                    color: Theme.of(context).primaryColor,
                   ),
-                );
-              } else if (state is PhoneAuthError) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(state.message)),
-                );
-              }
-            },
-          ),
-        ],
-        child: Scaffold(
-          body: SafeArea(
-            child: Center(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(24.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // Logo
-                    Icon(
-                      Icons.chat_bubble_outline,
-                      size: 80,
-                      color: Theme.of(context).primaryColor,
-                    ),
-                    const SizedBox(height: 16),
-                    
-                    // App Name
-                    const Text(
-                      'ProCohat',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 32,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    
-                    // Subtitle
-                    Text(
-                      'Secure messaging with real-time features',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey[600],
-                      ),
-                    ),
-                    const SizedBox(height: 48),
-                    
-                    // Method Toggle
-                    _buildMethodToggle(),
-                    const SizedBox(height: 24),
-                    
-                    // Login Form (Email or Phone)
-                    if (_isEmailMethod) _buildEmailForm() else _buildPhoneForm(),
-                    
-                    const SizedBox(height: 32),
-                    
-                    // OR Divider
-                    Row(
-                      children: [
-                        const Expanded(child: Divider()),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          child: Text(
-                            'OR',
-                            style: TextStyle(
-                              color: Colors.grey[600],
-                              fontWeight: FontWeight.w500,
-                            ),
+                  const SizedBox(height: 16),
+
+                  // App Name
+                  const Text(
+                    'ProCohat',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+
+                  // Subtitle
+                  Text(
+                    'Secure messaging with real-time features',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                  ),
+                  const SizedBox(height: 48),
+
+                  // Method Toggle
+                  _buildMethodToggle(),
+                  const SizedBox(height: 24),
+
+                  // Login Form (Email or Phone)
+                  if (_isEmailMethod) _buildEmailForm() else _buildPhoneForm(),
+
+                  const SizedBox(height: 32),
+
+                  // OR Divider
+                  Row(
+                    children: [
+                      const Expanded(child: Divider()),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Text(
+                          'OR',
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
-                        const Expanded(child: Divider()),
-                      ],
-                    ),
-                    const SizedBox(height: 32),
-                    
-                    // Google Sign-In Button
-                    _buildGoogleSignInButton(),
-                    
-                    const SizedBox(height: 32),
-                    
-                    // Sign Up Link
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          "Don't have an account? ",
-                          style: TextStyle(color: Colors.grey[600]),
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) => const SignupScreen(),
-                              ),
-                            );
-                          },
-                          child: const Text('Sign Up'),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+                      ),
+                      const Expanded(child: Divider()),
+                    ],
+                  ),
+                  const SizedBox(height: 32),
+
+                  // Google Sign-In Button
+                  _buildGoogleSignInButton(),
+
+                  const SizedBox(height: 32),
+
+                  // Sign Up Link
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        "Don't have an account? ",
+                        style: TextStyle(color: Colors.grey[600]),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => const SignupScreen(),
+                            ),
+                          );
+                        },
+                        child: const Text('Sign Up'),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
           ),
@@ -351,7 +344,9 @@ void _handleEmailLogin() {
               child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 decoration: BoxDecoration(
-                  color: _isEmailMethod ? Theme.of(context).primaryColor : Colors.transparent,
+                  color: _isEmailMethod
+                      ? Theme.of(context).primaryColor
+                      : Colors.transparent,
                   borderRadius: BorderRadius.circular(30),
                 ),
                 child: Row(
@@ -381,7 +376,9 @@ void _handleEmailLogin() {
               child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 decoration: BoxDecoration(
-                  color: !_isEmailMethod ? Theme.of(context).primaryColor : Colors.transparent,
+                  color: !_isEmailMethod
+                      ? Theme.of(context).primaryColor
+                      : Colors.transparent,
                   borderRadius: BorderRadius.circular(30),
                 ),
                 child: Row(
@@ -396,7 +393,9 @@ void _handleEmailLogin() {
                     Text(
                       'Phone',
                       style: TextStyle(
-                        color: !_isEmailMethod ? Colors.white : Colors.grey[700],
+                        color: !_isEmailMethod
+                            ? Colors.white
+                            : Colors.grey[700],
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -406,7 +405,7 @@ void _handleEmailLogin() {
             ),
           ),
         ],
-      )
+      ),
     );
   }
 
@@ -414,7 +413,7 @@ void _handleEmailLogin() {
     return BlocBuilder<LoginBloc, LoginState>(
       builder: (context, state) {
         final isLoading = state is LoginInProgress;
-        
+
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -432,7 +431,7 @@ void _handleEmailLogin() {
               ),
             ),
             const SizedBox(height: 16),
-            
+
             // Password Field
             TextField(
               controller: _passwordController,
@@ -455,7 +454,7 @@ void _handleEmailLogin() {
               ),
             ),
             const SizedBox(height: 24),
-            
+
             // Login Button
             ElevatedButton(
               onPressed: isLoading ? null : _handleEmailLogin,
@@ -476,7 +475,10 @@ void _handleEmailLogin() {
                     )
                   : const Text(
                       'Log In',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
             ),
           ],
@@ -489,7 +491,7 @@ void _handleEmailLogin() {
     return BlocBuilder<PhoneAuthBloc, PhoneAuthState>(
       builder: (context, state) {
         final isLoading = state is PhoneAuthSendingOTP;
-        
+
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -497,13 +499,10 @@ void _handleEmailLogin() {
             Text(
               'Enter your phone number without country code',
               textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[600],
-              ),
+              style: TextStyle(fontSize: 14, color: Colors.grey[600]),
             ),
             const SizedBox(height: 16),
-            
+
             // Phone Number Field
             Row(
               children: [
@@ -525,7 +524,7 @@ void _handleEmailLogin() {
                   ),
                 ),
                 const SizedBox(width: 12),
-                
+
                 // Phone Number Input
                 Expanded(
                   child: TextField(
@@ -545,7 +544,7 @@ void _handleEmailLogin() {
               ],
             ),
             const SizedBox(height: 24),
-            
+
             // Send OTP Button
             ElevatedButton(
               onPressed: isLoading ? null : _handlePhoneLogin,
@@ -566,7 +565,10 @@ void _handleEmailLogin() {
                     )
                   : const Text(
                       'Send OTP',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
             ),
           ],
@@ -580,9 +582,7 @@ void _handleEmailLogin() {
       onPressed: _isGoogleLoading ? null : _handleGoogleSignIn,
       style: OutlinedButton.styleFrom(
         padding: const EdgeInsets.symmetric(vertical: 16),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         side: BorderSide(color: Colors.grey[300]!),
       ),
       icon: _isGoogleLoading

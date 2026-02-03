@@ -16,7 +16,10 @@ import 'package:supabase_flutter_app/features/chat/data/chat_repository.dart';
 import 'package:supabase_flutter_app/features/profile/ui/profile_view_screen.dart';
 import 'package:supabase_flutter_app/features/profile/data/profile_repository.dart';
 import 'package:supabase_flutter_app/features/auth/data/auth_repository.dart';
-import 'package:supabase_flutter_app/features/auth/login/ui/login_screen.dart';
+import 'package:supabase_flutter_app/features/auth/unified_login/ui/unified_login_screen_clean.dart';
+import 'package:supabase_flutter_app/features/broadcast/bloc/broadcast_bloc.dart';
+import 'package:supabase_flutter_app/features/broadcast/data/broadcast_repository.dart';
+import 'package:supabase_flutter_app/features/broadcast/ui/broadcast_list_screen.dart';
 
 class ChatListScreen extends StatefulWidget {
   const ChatListScreen({super.key});
@@ -82,13 +85,25 @@ class _ChatListScreenState extends State<ChatListScreen> {
         PopupMenuButton<String>(
           icon: const Icon(Icons.more_vert),
           onSelected: (value) {
-            if (value == 'profile') {
+            if (value == 'broadcast') {
+              _navigateToBroadcasts();
+            } else if (value == 'profile') {
               _navigateToProfile();
             } else if (value == 'logout') {
               _showLogoutDialog();
             }
           },
           itemBuilder: (context) => [
+            const PopupMenuItem(
+              value: 'broadcast',
+              child: Row(
+                children: [
+                  Icon(Icons.campaign, size: 20, color: Color(0xFF25D366)),
+                  SizedBox(width: 12),
+                  Text('Broadcast Lists'),
+                ],
+              ),
+            ),
             const PopupMenuItem(
               value: 'profile',
               child: Row(
@@ -415,6 +430,19 @@ class _ChatListScreenState extends State<ChatListScreen> {
     );
   }
 
+  void _navigateToBroadcasts() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => BlocProvider(
+          create: (_) => BroadcastBloc(
+            repository: BroadcastRepository(),
+          ),
+          child: const BroadcastListScreen(),
+        ),
+      ),
+    );
+  }
+  
   void _showLogoutDialog() {
     showDialog(
       context: context,
@@ -432,7 +460,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
                 await AuthRepository().signOut();
                 if (mounted) {
                   Navigator.of(context).pushAndRemoveUntil(
-                    MaterialPageRoute(builder: (_) => const LoginScreen()),
+                    MaterialPageRoute(builder: (_) => const UnifiedLoginScreen()),
                     (route) => false,
                   );
                 }

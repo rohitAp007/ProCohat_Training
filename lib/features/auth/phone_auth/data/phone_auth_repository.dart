@@ -13,30 +13,44 @@ class PhoneAuthRepository {
   /// Send OTP to phone number
   /// 
   /// Supabase will send an SMS with verification code
-  /// In development, tries without country code for test numbers first
+  /// For test OTPs, tries without country code first (as configured in Supabase)
   Future<void> sendOTP({
     required String phoneNumber,
   }) async {
+    // Extract number without country code for test OTPs
+    String numberWithoutCode = phoneNumber;
+    if (phoneNumber.startsWith('+')) {
+      // Remove country code (e.g., +91 = 3 chars)
+      numberWithoutCode = phoneNumber.substring(3);
+    }
+    
     try {
-      // Try sending OTP
+      // FIRST: Try without country code (for Supabase test OTPs)
+      // Test OTPs are configured like: 7666086414=4685
       await _supabaseClient.auth.signInWithOtp(
-        phone: phoneNumber,
+        phone: numberWithoutCode,
       );
+      return; // Success!
     } on AuthException catch (e) {
-      // If format is invalid and starts with +, try without country code
-      if (e.message.toLowerCase().contains('invalid') && phoneNumber.startsWith('+')) {
+      // If that failed, try with full number (for real Twilio SMS)
+      if (phoneNumber != numberWithoutCode) {
         try {
-          // Extract just the numbers without country code
-          final withoutCountryCode = phoneNumber.substring(3); // Remove +91
           await _supabaseClient.auth.signInWithOtp(
-            phone: withoutCountryCode,
+            phone: phoneNumber,
           );
-          return; // Success with retry
-        } catch (_) {
-          // If retry also fails, throw original error
+          return; // Success with full number!
+        } on AuthException catch (e2) {
+          // Both attempts failed, use the second error
+          if (e2.message.toLowerCase().contains('invalid')) {
+            throw InvalidPhoneNumberException();
+          } else if (e2.message.toLowerCase().contains('too many')) {
+            throw TooManyRequestsException();
+          }
+          throw UnknownPhoneAuthException(e2.message);
         }
       }
       
+      // Original attempt failed and no retry needed
       if (e.message.toLowerCase().contains('invalid')) {
         throw InvalidPhoneNumberException();
       } else if (e.message.toLowerCase().contains('too many')) {
