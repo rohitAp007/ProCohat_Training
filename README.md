@@ -314,7 +314,7 @@ This project is for educational purposes.
 
 ## 👨‍💻 Author
 
-**Rohit**  
+**Rohit Parsode**  
 Training Project - ProCohat Company  
 Duration: January 1-31, 2026 (31 Days)
 

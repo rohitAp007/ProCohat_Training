@@ -195,10 +195,13 @@ class _UnifiedLoginContentState extends State<_UnifiedLoginContent> {
         BlocListener<PhoneAuthBloc, PhoneAuthState>(
           listener: (context, state) {
             if (state is PhoneAuthOTPSent) {
+              // Capture the bloc BEFORE navigating
+              final phoneAuthBloc = context.read<PhoneAuthBloc>();
+              
               Navigator.of(context).push(
                 MaterialPageRoute(
-                  builder: (context) => BlocProvider.value(
-                    value: context.read<PhoneAuthBloc>(),
+                  builder: (_) => BlocProvider.value(
+                    value: phoneAuthBloc,
                     child: PhoneOTPScreen(
                       phoneNumber: '$_countryCode${_phoneController.text.trim()}',
                       verificationId: '',

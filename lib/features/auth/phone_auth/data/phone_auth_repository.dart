@@ -12,52 +12,63 @@ class PhoneAuthRepository {
 
   /// Send OTP to phone number
   /// 
-  /// Supabase will send an SMS with verification code
-  /// For test OTPs, tries without country code first (as configured in Supabase)
+  /// Handles both formats:
+  /// - With + prefix: +917666086414 (Twilio production)
+  /// - Without + prefix: 917666086414 (Supabase test OTP format)
   Future<void> sendOTP({
     required String phoneNumber,
   }) async {
-    // Extract number without country code for test OTPs
-    String numberWithoutCode = phoneNumber;
-    if (phoneNumber.startsWith('+')) {
-      // Remove country code (e.g., +91 = 3 chars)
-      numberWithoutCode = phoneNumber.substring(3);
-    }
-    
     try {
-      // FIRST: Try without country code (for Supabase test OTPs)
-      // Test OTPs are configured like: 7666086414=4685
-      await _supabaseClient.auth.signInWithOtp(
-        phone: numberWithoutCode,
-      );
-      return; // Success!
-    } on AuthException catch (e) {
-      // If that failed, try with full number (for real Twilio SMS)
-      if (phoneNumber != numberWithoutCode) {
-        try {
-          await _supabaseClient.auth.signInWithOtp(
-            phone: phoneNumber,
-          );
-          return; // Success with full number!
-        } on AuthException catch (e2) {
-          // Both attempts failed, use the second error
-          if (e2.message.toLowerCase().contains('invalid')) {
-            throw InvalidPhoneNumberException();
-          } else if (e2.message.toLowerCase().contains('too many')) {
-            throw TooManyRequestsException();
-          }
-          throw UnknownPhoneAuthException(e2.message);
-        }
+      print('📞 Sending OTP to: $phoneNumber');
+      
+      // Ensure phone number has country code
+      String formattedPhone = phoneNumber;
+      if (!formattedPhone.startsWith('+')) {
+        formattedPhone = '+91$phoneNumber';
       }
       
-      // Original attempt failed and no retry needed
+      print('📱 Trying with + prefix: $formattedPhone');
+      
+      try {
+        // FIRST: Try with + prefix (for Twilio production)
+        await _supabaseClient.auth.signInWithOtp(
+          phone: formattedPhone,
+        );
+        print('✅ OTP sent successfully');
+        return;
+        
+      } on AuthException catch (e) {
+        // If invalid, retry without + prefix for Supabase test OTPs
+        if (e.message.toLowerCase().contains('invalid') && 
+            formattedPhone.startsWith('+')) {
+          
+          // Remove ONLY the + sign, keep country code
+          String withoutPlus = formattedPhone.substring(1);
+          print('🔄 Retrying without + prefix: $withoutPlus');
+          
+          // SECOND: Try without + (for Supabase test format: 917666086414=4685)
+          await _supabaseClient.auth.signInWithOtp(
+            phone: withoutPlus,
+          );
+          print('✅ OTP sent successfully (test format)');
+          return;
+        }
+        rethrow;
+      }
+      
+    } on AuthException catch (e) {
+      print('❌ Auth error: ${e.message}');
+      
       if (e.message.toLowerCase().contains('invalid')) {
         throw InvalidPhoneNumberException();
       } else if (e.message.toLowerCase().contains('too many')) {
         throw TooManyRequestsException();
       }
       throw UnknownPhoneAuthException(e.message);
+      
     } catch (e) {
+      print('❌ Unknown error: $e');
+      
       if (e.toString().toLowerCase().contains('network')) {
         throw NetworkException();
       }
@@ -68,14 +79,24 @@ class PhoneAuthRepository {
   /// Verify OTP code
   /// 
   /// Returns Supabase User if successful
-  /// Handles both phone formats (with/without country code)
+  /// Uses same E.164 format as sendOTP
   Future<User> verifyOTP({
     required String phoneNumber,
     required String otpCode,
   }) async {
     try {
+      print('🔍 Verifying OTP for: $phoneNumber');
+      
+      // Ensure phone number has country code (same as sendOTP)
+      String formattedPhone = phoneNumber;
+      if (!formattedPhone.startsWith('+')) {
+        formattedPhone = '+91$phoneNumber';
+      }
+      
+      print('📱 Formatted phone: $formattedPhone');
+      
       final response = await _supabaseClient.auth.verifyOTP(
-        phone: phoneNumber,
+        phone: formattedPhone,
         token: otpCode,
         type: OtpType.sms,
       );
@@ -84,34 +105,22 @@ class PhoneAuthRepository {
         throw UnknownPhoneAuthException('Failed to verify OTP');
       }
 
+      print('✅ OTP verified successfully');
       return response.user!;
+      
     } on AuthException catch (e) {
-      // Try without country code if initial verification fails
-      if (e.message.toLowerCase().contains('invalid') && phoneNumber.startsWith('+')) {
-        try {
-          final withoutCountryCode = phoneNumber.substring(3);
-          final retryResponse = await _supabaseClient.auth.verifyOTP(
-            phone: withoutCountryCode,
-            token: otpCode,
-            type: OtpType.sms,
-          );
-          
-          if (retryResponse.user != null) {
-            return retryResponse.user!;
-          }
-        } catch (_) {
-          // Continue to original error handling
-        }
-      }
+      print('❌ Auth error: ${e.message}');
       
       if (e.message.toLowerCase().contains('invalid') ||
           e.message.toLowerCase().contains('expired')) {
         throw InvalidVerificationCodeException();
-      } else if (e.message.toLowerCase().contains('expired')) {
-        throw SessionExpiredException();
+      } else if (e.message.toLowerCase().contains('too many')) {
+        throw TooManyRequestsException();
       }
       throw UnknownPhoneAuthException(e.message);
+      
     } catch (e) {
+      print('❌ Unknown error: $e');
       if (e.toString().toLowerCase().contains('network')) {
         throw NetworkException();
       }

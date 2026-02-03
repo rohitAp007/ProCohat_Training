@@ -60,6 +60,21 @@ class Message extends Equatable {
 
   /// Timestamp when message was read (nullable)
   final DateTime? readAt;
+
+  /// Message status: 'sent', 'delivered', 'read'
+  final String status;
+
+  /// Media type: 'image', 'video', 'file', 'audio' (nullable)
+  final String? mediaType;
+
+  /// File name for media attachments (nullable)
+  final String? fileName;
+
+  /// File size in bytes (nullable)
+  final int? fileSize;
+
+  /// Thumbnail URL for media preview (nullable)
+  final String? thumbnailUrl;
   
   /// Constructor
   const Message({
@@ -73,6 +88,11 @@ class Message extends Equatable {
     required this.updatedAt,
     this.deliveredAt,
     this.readAt,
+    this.status = 'sent',
+    this.mediaType,
+    this.fileName,
+    this.fileSize,
+    this.thumbnailUrl,
   });
   
   // =========================================================================
@@ -114,6 +134,11 @@ class Message extends Equatable {
       readAt: json['read_at'] != null 
           ? DateTime.parse(json['read_at'] as String) 
           : null,
+      status: (json['status'] as String?) ?? 'sent',
+      mediaType: json['media_type'] as String?,
+      fileName: json['file_name'] as String?,
+      fileSize: json['file_size'] as int?,
+      thumbnailUrl: json['thumbnail_url'] as String?,
     );
   }
   
@@ -138,6 +163,11 @@ class Message extends Equatable {
       'updated_at': updatedAt.toIso8601String(),
       'delivered_at': deliveredAt?.toIso8601String(),
       'read_at': readAt?.toIso8601String(),
+      'status': status,
+      'media_type': mediaType,
+      'file_name': fileName,
+      'file_size': fileSize,
+      'thumbnail_url': thumbnailUrl,
     };
   }
   
@@ -192,6 +222,11 @@ class Message extends Equatable {
         updatedAt,
         deliveredAt,
         readAt,
+        status,
+        mediaType,
+        fileName,
+        fileSize,
+        thumbnailUrl,
       ];
   
   // =========================================================================
@@ -223,6 +258,11 @@ class Message extends Equatable {
     DateTime? updatedAt,
     DateTime? deliveredAt,
     DateTime? readAt,
+    String? status,
+    String? mediaType,
+    String? fileName,
+    int? fileSize,
+    String? thumbnailUrl,
   }) {
     return Message(
       id: id ?? this.id,
@@ -235,6 +275,11 @@ class Message extends Equatable {
       updatedAt: updatedAt ?? this.updatedAt,
       deliveredAt: deliveredAt ?? this.deliveredAt,
       readAt: readAt ?? this.readAt,
+      status: status ?? this.status,
+      mediaType: mediaType ?? this.mediaType,
+      fileName: fileName ?? this.fileName,
+      fileSize: fileSize ?? this.fileSize,
+      thumbnailUrl: thumbnailUrl ?? this.thumbnailUrl,
     );
   }
   
