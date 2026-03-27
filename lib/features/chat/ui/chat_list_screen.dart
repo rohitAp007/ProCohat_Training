@@ -5,6 +5,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter_app/features/profile/bloc/profile_bloc.dart';
 import 'package:supabase_flutter_app/features/profile/bloc/profile_state.dart';
 import 'package:supabase_flutter_app/features/profile/bloc/profile_event.dart';
@@ -73,15 +74,11 @@ class _ChatListScreenState extends State<ChatListScreen> {
       backgroundColor: const Color(0xFF075E54),
       elevation: 0,
       actions: [
-        IconButton(
-          icon: const Icon(Icons.camera_alt_outlined),
-          onPressed: () {
-            // TODO: Camera feature
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Camera coming soon!')),
-            );
-          },
-        ),
+        // Camera feature - disabled until Profile model updated with lastSeen
+        // IconButton(
+        //   icon: const Icon(Icons.camera_alt_outlined),
+        //   onPressed: () => _openCameraForQuickShare(),
+        // ),
         PopupMenuButton<String>(
           icon: const Icon(Icons.more_vert),
           onSelected: (value) {
@@ -230,20 +227,43 @@ class _ChatListScreenState extends State<ChatListScreen> {
         children: [
           ListTile(
             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            leading: CircleAvatar(
-              radius: 28,
-              backgroundColor: const Color(0xFF25D366),
-              child: user.avatarUrl != null && user.avatarUrl!.isNotEmpty
-                  ? ClipOval(
-                      child: Image.network(
-                        user.avatarUrl!,
-                        fit: BoxFit.cover,
-                        width: 56,
-                        height: 56,
-                        errorBuilder: (_, __, ___) => _buildAvatarFallback(user),
+            leading: Stack(
+              children: [
+                CircleAvatar(
+                  radius: 28,
+                  backgroundColor: const Color(0xFF25D366),
+                  child: user.avatarUrl != null && user.avatarUrl!.isNotEmpty
+                      ? ClipOval(
+                          child: Image.network(
+                            user.avatarUrl!,
+                            fit: BoxFit.cover,
+                            width: 56,
+                            height: 56,
+                            errorBuilder: (_, __, ___) => _buildAvatarFallback(user),
+                          ),
+                        )
+                      : _buildAvatarFallback(user),
+                ),
+                // Online status indicator
+                // Online status indicator (always show if user has been online recently)
+                if (user.lastSeen != null && DateTime.now().difference(user.lastSeen!).inMinutes < 5)
+                  Positioned(
+                    right: 0,
+                    bottom: 0,
+                    child: Container(
+                      width: 16,
+                      height: 16,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF25D366), // WhatsApp green
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: Colors.white,
+                          width: 2,
+                        ),
                       ),
-                    )
-                  : _buildAvatarFallback(user),
+                    ),
+                  ),
+              ],
             ),
             title: Text(
               user.fullName,
@@ -377,16 +397,219 @@ class _ChatListScreenState extends State<ChatListScreen> {
   // FAB - Floating Action Button
   // =========================================================================
   
+  /// ====================================================================
+  /// NEW CHAT FAB
+  /// ====================================================================
+  
   Widget _buildFAB() {
     return FloatingActionButton(
-      onPressed: () {
-        // Already on chat list, could scroll to top or show new chat dialog
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Select a user to start chatting!')),
-        );
-      },
+      onPressed: () => _showNewChatBottomSheet(),
       backgroundColor: const Color(0xFF25D366),
       child: const Icon(Icons.message, color: Colors.white),
+    );
+  }
+  
+  /// Show bottom sheet to select user for new chat
+  void _showNewChatBottomSheet() {
+    // Capture the ProfileBloc BEFORE creating the bottom sheet
+    final profileBloc = context.read<ProfileBloc>();
+    
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => BlocProvider.value(
+        value: profileBloc,
+        child: DraggableScrollableSheet(
+          initialChildSize: 0.7,
+          minChildSize: 0.5,
+          maxChildSize: 0.95,
+          builder: (_, controller) => Container(
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+            ),
+            child: Column(
+              children: [
+                // Handle bar
+                Container(
+                  margin: const EdgeInsets.only(top: 12, bottom: 8),
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                
+                // Title
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    children: [
+                      const Text(
+                        'Select contact to chat',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const Spacer(),
+                      IconButton(
+                        icon: const Icon(Icons.close),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                    ],
+                  ),
+                ),
+                
+                Divider(height: 1, color: Colors.grey[200]),
+                
+                // User list
+                Expanded(
+                  child: BlocBuilder<ProfileBloc, ProfileState>(
+                    builder: (context, state) {
+                      if (state is ProfileLoading) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+                      
+                      if (state is ProfileError) {
+                        return Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.error_outline, 
+                                size: 64, 
+                                color: Colors.grey[400],
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                state.message,
+                                style: TextStyle(color: Colors.grey[600]),
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
+                          ),
+                        );
+                      }
+                      
+                      if (state is ProfilesLoaded) {
+                        final currentUserId = 
+                            Supabase.instance.client.auth.currentUser?.id;
+                        
+                        final users = state.profiles
+                            .where((profile) => profile.id != currentUserId)
+                            .toList();
+                        
+                        if (users.isEmpty) {
+                          return Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.people_outline, 
+                                  size: 64, 
+                                  color: Colors.grey[400],
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  'No users available',
+                                  style: TextStyle(
+                                    color: Colors.grey[600],
+                                    fontSize: 16,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Invite friends to start chatting!',
+                                  style: TextStyle(
+                                    color: Colors.grey[500],
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }
+                        
+                        return ListView.builder(
+                          controller: controller,
+                          itemCount: users.length,
+                          itemBuilder: (context, index) {
+                            final user = users[index];
+                            return ListTile(
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                                vertical: 8,
+                              ),
+                              leading: CircleAvatar(
+                                radius: 24,
+                                backgroundColor: const Color(0xFF25D366),
+                                child: user.avatarUrl != null && 
+                                       user.avatarUrl!.isNotEmpty
+                                    ? ClipOval(
+                                        child: Image.network(
+                                          user.avatarUrl!,
+                                          fit: BoxFit.cover,
+                                          width: 48,
+                                          height: 48,
+                                          errorBuilder: (_, __, ___) => 
+                                              _buildAvatarFallback(user),
+                                        ),
+                                      )
+                                    : _buildAvatarFallback(user),
+                              ),
+                              title: Text(
+                                user.fullName,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 16,
+                                ),
+                              ),
+                              subtitle: Text(
+                                user.bio ?? 'Hey there! I am using ProCohat',
+                                style: TextStyle(
+                                  color: Colors.grey[600],
+                                  fontSize: 14,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              trailing: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 6,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF25D366),
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                child: const Text(
+                                  'Chat',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                              onTap: () {
+                                Navigator.pop(context);
+                                _openChat(user);
+                              },
+                            );
+                          },
+                        );
+                      }
+                      
+                      return const SizedBox.shrink();
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 
@@ -480,4 +703,98 @@ class _ChatListScreenState extends State<ChatListScreen> {
       ),
     );
   }
+  
+  // =========================================================================
+  // CAMERA QUICK SHARE - DISABLED (Profile model needs lastSeen field)
+  // =========================================================================
+  
+  /* 
+  Future<void> _openCameraForQuickShare() async {
+    try {
+      final ImagePicker picker = ImagePicker();
+      final XFile? photo = await picker.pickImage(
+        source: ImageSource.camera,
+        imageQuality: 80,
+      );
+      
+      if (photo == null) return;
+      
+      // Show chat selector dialog
+      if (!mounted) return;
+      
+      final selectedUser = await showDialog<Profile>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Send to...'),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: BlocBuilder<ProfileBloc, ProfileState>(
+              builder: (context, state) {
+                if (state is! ProfilesLoaded) return const CircularProgressIndicator();
+                
+                return ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: state.profiles.length,
+                  itemBuilder: (context, index) {
+                    final user = state.profiles[index];
+                    // Skip current user
+                    if (user.id == Supabase.instance.client.auth.currentUser!.id) {
+                      return const SizedBox.shrink();
+                    }
+                    return ListTile(
+                      leading: CircleAvatar(
+                        backgroundColor: const Color(0xFF25D366),
+                        child: Text(
+                          user.fullName.isNotEmpty 
+                              ? user.fullName[0].toUpperCase() 
+                              : '?',
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                      ),
+                      title: Text(user.fullName),
+                      onTap: () => Navigator.pop(context, user),
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+          ],
+        ),
+      );
+      
+      if (selectedUser == null || !mounted) return;
+      
+      // Navigate to chat with the selected user and the photo
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => BlocProvider(
+            create: (context) => ChatBloc(
+              chatRepository: ChatRepository(),
+              messageRepository: MessageRepository(),
+              currentUserId: Supabase.instance.client.auth.currentUser!.id,
+            )..add(ChatLoadRequested(otherUserId: selectedUser.id)),
+            child: ChatScreen(
+              otherUserId: selectedUser.id,
+              otherUserName: selectedUser.fullName,
+              quickShareImagePath: photo.path, // Pass the photo path
+            ),
+          ),
+        ),
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to open camera: $e')),
+        );
+      }
+    }
+  }
+  */
 }

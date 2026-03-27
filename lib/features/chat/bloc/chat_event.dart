@@ -252,6 +252,26 @@ class ChatMediaUploadRequested extends ChatEvent {
   List<Object?> get props => [filePath, receiverId];
 }
 
+/// Send media message (after upload)
+class ChatMediaMessageSendRequested extends ChatEvent {
+  final String mediaUrl;
+  final String mediaType;
+  final String fileName;
+  final int fileSize;
+  final String receiverId;
+  
+  const ChatMediaMessageSendRequested({
+    required this.mediaUrl,
+    required this.mediaType,
+    required this.fileName,
+    required this.fileSize,
+    required this.receiverId,
+  });
+  
+  @override
+  List<Object?> get props => [mediaUrl, mediaType, fileName, fileSize, receiverId];
+}
+
 // ============================================================================
 // REALTIME EVENTS (Day 20 implementation)
 // ============================================================================

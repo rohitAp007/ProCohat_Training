@@ -53,6 +53,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     // Register event handlers (like ProfileBloc!)
     on<ChatHistoryLoadRequested>(_onHistoryLoad);
     on<ChatMessageSendRequested>(_onMessageSend);
+    on<ChatMediaMessageSendRequested>(_onMediaMessageSend);
     on<ChatMessageReceived>(_onMessageReceived);
     on<ChatLoadMoreRequested>(_onLoadMore);
     on<ChatMessageUpdateRequested>(_onMessageUpdate);
@@ -200,6 +201,100 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     } catch (e) {
       emit(ChatError(
         message: 'Failed to send message',
+        isRecoverable: true,
+        previousMessages: currentState.messages,
+      ));
+    }
+  }
+  
+  // =========================================================================
+  // HANDLER 3: SEND MEDIA MESSAGE
+  // =========================================================================
+  
+  /// Send media message (image/video/file)
+  Future<void> _onMediaMessageSend(
+    ChatMediaMessageSendRequested event,
+    Emitter<ChatState> emit,
+  ) async {
+    final currentState = state;
+    if (currentState is! ChatLoaded) return;
+    
+    // Create optimistic message with media
+    final optimisticMessage = Message(
+      id: 'temp-${DateTime.now().millisecondsSinceEpoch}',
+      chatId: currentState.chatId,
+      senderId: _currentUserId,
+      receiverId: event.receiverId,
+      message: '[${event.mediaType.toUpperCase()}]',
+      mediaUrl: event.mediaUrl,
+      mediaType: event.mediaType,
+      fileName: event.fileName,
+      fileSize: event.fileSize,
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
+    );
+    
+    // Show immediately
+    emit(ChatMessageSending(
+      messages: currentState.messages,
+      chatId: currentState.chatId,
+      otherUserId: currentState.otherUserId,
+      pendingMessage: optimisticMessage,
+      hasMore: currentState.hasMore,
+    ));
+    
+    try {
+      // Get/create chat
+      final chat = await _chatRepository.getOrCreateChat(
+        userId1: _currentUserId,
+        userId2: event.receiverId,
+      );
+      
+      // Send to server with media metadata
+      final sentMessage = await _messageRepository.sendMessage(
+        chatId: chat.id,
+        senderId: _currentUserId,
+        receiverId: event.receiverId,
+        text: '[${event.mediaType.toUpperCase()}]',
+        mediaUrl: event.mediaUrl,
+        mediaType: event.mediaType,
+        fileName: event.fileName,
+        fileSize: event.fileSize,
+      );
+      
+      // Update chat metadata
+      await _chatRepository.updateLastMessage(
+        chatId: chat.id,
+        messageText: '[${event.mediaType.toUpperCase()}]',
+        messageTime: sentMessage.createdAt,
+      );
+      
+      // Replace optimistic with real message
+      final updatedMessages = [sentMessage, ...currentState.messages];
+      
+      emit(ChatLoaded(
+        messages: updatedMessages,
+        chatId: currentState.chatId,
+        otherUserId: currentState.otherUserId,
+        hasMore: currentState.hasMore,
+      ));
+      
+    } on NetworkException {
+      emit(ChatError(
+        message: 'No internet connection',
+        isRecoverable: true,
+        previousMessages: currentState.messages,
+      ));
+    } on MessageSendFailedException catch (e) {
+      emit(ChatError(
+        message: e.message,
+        isRecoverable: e.isRecoverable,
+        previousMessages: currentState.messages,
+      ));
+    } catch (e) {
+      AppLogger.error('Failed to send media message', error: e, tag: 'ChatBloc');
+      emit(ChatError(
+        message: 'Failed to send media: ${e.toString()}',
         isRecoverable: true,
         previousMessages: currentState.messages,
       ));

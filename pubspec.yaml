@@ -34,7 +34,10 @@ dependencies:
   # Media Handling
   image_picker: ^1.0.7
   file_picker: ^8.0.0
-  video_player: ^2.8.2
+  video_player: ^2.8.1
+  
+  # Image Zoom Viewer
+  photo_view: ^0.15.0
   image: ^4.1.7
   
   # Audio

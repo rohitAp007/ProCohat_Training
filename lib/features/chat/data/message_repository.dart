@@ -58,6 +58,9 @@ class MessageRepository {
     required String receiverId,
     String? text,
     String? mediaUrl,
+    String? mediaType,
+    String? fileName,
+    int? fileSize,
   }) async {
     try {
       // STEP 1: Validate (at least one must be present)
@@ -78,6 +81,9 @@ class MessageRepository {
         receiverId: receiverId,
         message: text?.trim(),
         mediaUrl: mediaUrl?.trim(),
+        mediaType: mediaType,
+        fileName: fileName,
+        fileSize: fileSize,
         createdAt: now,
         updatedAt: now,
       );
